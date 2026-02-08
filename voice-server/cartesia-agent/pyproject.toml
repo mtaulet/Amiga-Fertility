@@ -1,0 +1,9 @@
+[project]
+name = "cartesia-agent"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "cartesia-line>=0.2.2",
+    "supabase>=2.27.3",
+]

@@ -1,0 +1,28 @@
+{
+  "name": "amiga-voice-server",
+  "version": "1.0.0",
+  "description": "Real-time voice assistant for doctor-patient conversations",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon twilio-cartesia-phone-bridge.js",
+    "start": "node twilio-cartesia-phone-bridge.js",
+    "agent": "cd cartesia-agent && bash start.sh",
+    "old-bridge": "node twilio-bridge.js",
+    "calls-api": "node cartesia-calls-bridge.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
+    "@cartesia/cartesia-js": "^1.2.0",
+    "@deepgram/sdk": "^3.7.0",
+    "@supabase/supabase-js": "^2.46.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "node-fetch": "^3.3.2",
+    "twilio": "^5.3.4",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}

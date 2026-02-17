@@ -1,7 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import Navigation from '@/components/Navigation'
+import SidebarLayout from '@/components/layouts/SidebarLayout'
+import {
+  Box,
+  Container,
+  Heading,
+  Text,
+  VStack,
+  Button,
+  Input,
+  Separator,
+  Flex,
+  Center,
+} from '@chakra-ui/react'
+import { Card } from '@/components/ui/card'
+import { Alert } from '@/components/ui/alert'
+import { Field } from '@/components/ui/field'
+import { NativeSelectField, NativeSelectRoot } from '@/components/ui/native-select'
+import { FiCheckCircle } from 'react-icons/fi'
 
 export default function StartAppointmentPage() {
   const [loading, setLoading] = useState(false)
@@ -64,62 +81,73 @@ export default function StartAppointmentPage() {
   }
 
   return (
-    <>
-      <Navigation />
-      <main className="min-h-screen bg-gradient-to-b from-beige-50 to-beige-100">
-        <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-          <div className="mb-10">
-            <h1 className="text-4xl font-serif font-bold text-primary-600">
-              Start AI-Assisted Appointment
-            </h1>
-            <p className="mt-3 text-lg text-gray-700">
-              Connect a doctor and patient with Amiga's AI assistant listening and helping in real-time.
-            </p>
-            <div className="w-24 h-1 bg-purple-500 mt-4"></div>
-          </div>
+    <SidebarLayout>
+      <Container maxW="3xl" py="12" px={{ base: '4', sm: '6', lg: '8' }}>
+        {/* Header */}
+        <Box mb="10">
+          <Heading size="3xl" color="brand.600" mb="3">
+            Start AI-Assisted Appointment
+          </Heading>
+          <Text fontSize="lg" color="gray.700">
+            Connect a doctor and patient with Amiga's AI assistant listening and helping in real-time.
+          </Text>
+          <Separator width="24" borderColor="purple.500" borderWidth="2px" mt="4" />
+        </Box>
 
-          {callStarted ? (
-            <div className="bg-white shadow-lg rounded-xl border border-beige-200 p-8 text-center">
-              <div className="mb-6">
-                <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-4">
-                  <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <h2 className="text-3xl font-serif font-bold text-primary-600 mb-2">
-                  Calls Connecting!
-                </h2>
-                <p className="text-gray-700 text-lg">
-                  Both doctor and patient are being called now.
-                </p>
-                <p className="text-gray-600 mt-4">
-                  The AI assistant Amiga will join the conference and listen to help during the conversation.
-                </p>
-              </div>
+        {callStarted ? (
+          <Card.Root bg="white">
+            <Card.Body textAlign="center" py="8">
+              <Center mb="6">
+                <Flex
+                  align="center"
+                  justify="center"
+                  w="20"
+                  h="20"
+                  bg="green.100"
+                  borderRadius="full"
+                  mb="4"
+                >
+                  <FiCheckCircle size={40} color="#16A34A" />
+                </Flex>
+              </Center>
+              <Heading size="2xl" color="brand.600" mb="2">
+                Calls Connecting!
+              </Heading>
+              <Text color="gray.700" fontSize="lg" mb="4">
+                Both doctor and patient are being called now.
+              </Text>
+              <Text color="gray.600">
+                The AI assistant Amiga will join the conference and listen to help during the conversation.
+              </Text>
 
-              <div className="bg-beige-50 rounded-lg p-6 border border-beige-200">
-                <h3 className="font-serif font-bold text-gray-900 mb-3">What happens next:</h3>
-                <ul className="text-left space-y-2 text-gray-700">
-                  <li className="flex items-start">
-                    <span className="text-primary-500 mr-2">1.</span>
-                    Doctor receives a call and joins the conference
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-primary-500 mr-2">2.</span>
-                    Patient receives a call and joins the conference
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-primary-500 mr-2">3.</span>
-                    AI assistant listens and can speak to clarify or help
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-primary-500 mr-2">4.</span>
-                    Full transcript available after the call
-                  </li>
-                </ul>
-              </div>
+              <Box bg="cream.50" borderRadius="lg" p="6" borderWidth="1px" borderColor="gray.200" mt="6">
+                <Heading size="sm" color="gray.900" mb="3">
+                  What happens next:
+                </Heading>
+                <VStack align="start" gap="2" color="gray.700">
+                  <Flex align="start">
+                    <Text color="brand.500" fontWeight="bold" mr="2">1.</Text>
+                    <Text>Doctor receives a call and joins the conference</Text>
+                  </Flex>
+                  <Flex align="start">
+                    <Text color="brand.500" fontWeight="bold" mr="2">2.</Text>
+                    <Text>Patient receives a call and joins the conference</Text>
+                  </Flex>
+                  <Flex align="start">
+                    <Text color="brand.500" fontWeight="bold" mr="2">3.</Text>
+                    <Text>AI assistant listens and can speak to clarify or help</Text>
+                  </Flex>
+                  <Flex align="start">
+                    <Text color="brand.500" fontWeight="bold" mr="2">4.</Text>
+                    <Text>Full transcript available after the call</Text>
+                  </Flex>
+                </VStack>
+              </Box>
 
-              <button
+              <Button
+                mt="6"
+                variant="outline"
+                colorScheme="gray"
                 onClick={() => {
                   setCallStarted(false)
                   setFormData({
@@ -129,109 +157,101 @@ export default function StartAppointmentPage() {
                     appointmentType: 'consultation'
                   })
                 }}
-                className="mt-6 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-serif font-bold"
               >
                 Start Another Appointment
-              </button>
-            </div>
-          ) : (
-            <div className="bg-white shadow-lg rounded-xl border border-beige-200 p-8">
+              </Button>
+            </Card.Body>
+          </Card.Root>
+        ) : (
+          <Card.Root bg="white">
+            <Card.Body p="8">
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-md">
-                  <p className="text-sm text-red-700 font-medium">{error}</p>
-                </div>
+                <Alert.Root status="error" mb="6">
+                  <Alert.Title>{error}</Alert.Title>
+                </Alert.Root>
               )}
 
-              <form onSubmit={handleStartCall} className="space-y-6">
-                <div>
-                  <label htmlFor="doctorName" className="block text-sm font-bold text-gray-700 mb-2">
-                    Doctor's Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="doctorName"
-                    required
-                    value={formData.doctorName}
-                    onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
-                    className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="Dr. Smith"
-                  />
-                </div>
+              <form onSubmit={handleStartCall}>
+                <VStack gap="6" align="stretch">
+                  <Field label="Doctor's Name" required>
+                    <Input
+                      id="doctorName"
+                      required
+                      value={formData.doctorName}
+                      onChange={(e) => setFormData({ ...formData, doctorName: e.target.value })}
+                      placeholder="Dr. Smith"
+                    />
+                  </Field>
 
-                <div>
-                  <label htmlFor="doctorPhone" className="block text-sm font-bold text-gray-700 mb-2">
-                    Doctor's Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    id="doctorPhone"
-                    required
-                    value={formData.doctorPhone}
-                    onChange={(e) => setFormData({ ...formData, doctorPhone: e.target.value })}
-                    className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="+1234567890"
-                  />
-                  <p className="mt-1 text-sm text-gray-600">Include country code (e.g., +1 for US)</p>
-                </div>
+                  <Field label="Doctor's Phone Number" required helperText="Include country code (e.g., +1 for US)">
+                    <Input
+                      type="tel"
+                      id="doctorPhone"
+                      required
+                      value={formData.doctorPhone}
+                      onChange={(e) => setFormData({ ...formData, doctorPhone: e.target.value })}
+                      placeholder="+1234567890"
+                    />
+                  </Field>
 
-                <div>
-                  <label htmlFor="patientPhone" className="block text-sm font-bold text-gray-700 mb-2">
-                    Patient's Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    id="patientPhone"
-                    required
-                    value={formData.patientPhone}
-                    onChange={(e) => setFormData({ ...formData, patientPhone: e.target.value })}
-                    className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="+1234567890"
-                  />
-                </div>
+                  <Field label="Patient's Phone Number" required>
+                    <Input
+                      type="tel"
+                      id="patientPhone"
+                      required
+                      value={formData.patientPhone}
+                      onChange={(e) => setFormData({ ...formData, patientPhone: e.target.value })}
+                      placeholder="+1234567890"
+                    />
+                  </Field>
 
-                <div>
-                  <label htmlFor="appointmentType" className="block text-sm font-bold text-gray-700 mb-2">
-                    Appointment Type *
-                  </label>
-                  <select
-                    id="appointmentType"
-                    required
-                    value={formData.appointmentType}
-                    onChange={(e) => setFormData({ ...formData, appointmentType: e.target.value })}
-                    className="w-full px-4 py-3 border border-beige-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  <Field label="Appointment Type" required>
+                    <NativeSelectRoot>
+                      <NativeSelectField
+                        id="appointmentType"
+                        required
+                        value={formData.appointmentType}
+                        onChange={(e) => setFormData({ ...formData, appointmentType: e.target.value })}
+                      >
+                        <option value="consultation">Initial Consultation</option>
+                        <option value="follow-up">Follow-up Visit</option>
+                        <option value="treatment-planning">Treatment Planning</option>
+                        <option value="results-review">Results Review</option>
+                      </NativeSelectField>
+                    </NativeSelectRoot>
+                  </Field>
+
+                  <Box bg="purple.50" borderRadius="lg" p="6" borderWidth="1px" borderColor="purple.200">
+                    <Heading size="sm" color="purple.900" mb="2">
+                      AI Assistant Features
+                    </Heading>
+                    <VStack align="start" fontSize="sm" color="purple.800" gap="1">
+                      <Text>• Clarifies complex medical terms in real-time</Text>
+                      <Text>• Suggests questions the patient might want to ask</Text>
+                      <Text>• Provides emotional support when needed</Text>
+                      <Text>• Takes automated notes</Text>
+                      <Text>• Creates full transcript for later review</Text>
+                    </VStack>
+                  </Box>
+
+                  <Button
+                    type="submit"
+                    colorScheme="brand"
+                    size="lg"
+                    w="full"
+                    disabled={loading}
+                    py="6"
+                    fontSize="lg"
+                    fontWeight="bold"
                   >
-                    <option value="consultation">Initial Consultation</option>
-                    <option value="follow-up">Follow-up Visit</option>
-                    <option value="treatment-planning">Treatment Planning</option>
-                    <option value="results-review">Results Review</option>
-                  </select>
-                </div>
-
-                <div className="bg-purple-50 rounded-lg p-6 border border-purple-200">
-                  <h3 className="font-serif font-bold text-purple-900 mb-2 flex items-center">
-                    AI Assistant Features
-                  </h3>
-                  <ul className="text-sm text-purple-800 space-y-1">
-                    <li>• Clarifies complex medical terms in real-time</li>
-                    <li>• Suggests questions the patient might want to ask</li>
-                    <li>• Provides emotional support when needed</li>
-                    <li>• Takes automated notes</li>
-                    <li>• Creates full transcript for later review</li>
-                  </ul>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-4 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-all shadow-md font-serif font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Starting Call...' : 'Start AI-Assisted Appointment'}
-                </button>
+                    {loading ? 'Starting Call...' : 'Start AI-Assisted Appointment'}
+                  </Button>
+                </VStack>
               </form>
-            </div>
-          )}
-        </div>
-      </main>
-    </>
+            </Card.Body>
+          </Card.Root>
+        )}
+      </Container>
+    </SidebarLayout>
   )
 }

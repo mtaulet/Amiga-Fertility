@@ -2,6 +2,25 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import PublicLayout from '@/components/layouts/PublicLayout'
+import {
+  Box,
+  Container,
+  Heading,
+  Text,
+  VStack,
+  Grid,
+  GridItem,
+  Input,
+  Button,
+  Textarea,
+  Separator,
+  Link as ChakraLink,
+} from '@chakra-ui/react'
+import { Card } from '@/components/ui/card'
+import { Alert } from '@/components/ui/alert'
+import { Field } from '@/components/ui/field'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface FormData {
   first_name: string
@@ -58,7 +77,7 @@ export default function IntakePage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
     if (type === 'checkbox' && 'checked' in e.target) {
-      setFormData(prev => ({ ...prev, [name]: e.target.checked }))
+      setFormData(prev => ({ ...prev, [name]: (e.target as HTMLInputElement).checked }))
     } else {
       setFormData(prev => ({ ...prev, [name]: value }))
     }
@@ -128,468 +147,346 @@ export default function IntakePage() {
     }
   }
 
-  return (
-    <div className="min-h-screen bg-beige-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
-        {/* Amiga Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-serif font-bold text-primary-500 mb-2">
-            amiga<br />fertility
-          </h1>
-        </div>
+  const fertilityGoalsOptions = [
+    'In Vitro Fertilization (IVF)',
+    'Intrauterine Insemination (IUI)',
+    'Egg Freezing',
+    'Embryo Freezing',
+    'Genetic Testing',
+    'Fertility Assessment',
+    'Donor Services',
+    'Surrogacy Services'
+  ]
 
-        <div className="bg-white shadow-lg sm:rounded-xl border border-beige-200">
-          <div className="px-6 py-8 sm:p-10">
-            <h2 className="text-3xl font-serif font-bold text-gray-900 mb-2">
+  const healthConcernsOptions = [
+    'Polycystic Ovary Syndrome (PCOS)',
+    'Endometriosis',
+    'Low Ovarian Reserve',
+    'Male Factor Infertility',
+    'Recurrent Pregnancy Loss',
+    'Advanced Maternal Age',
+    'Unexplained Infertility'
+  ]
+
+  return (
+    <PublicLayout>
+      <Container maxW="3xl" py="12" px={{ base: '4', sm: '6', lg: '8' }}>
+        {/* Amiga Logo */}
+        <VStack mb="8">
+          <Heading size="5xl" color="brand.500" textAlign="center" lineHeight="tight">
+            amiga
+            <br />
+            fertility
+          </Heading>
+        </VStack>
+
+        <Card.Root bg="white">
+          <Card.Body px={{ base: '6', sm: '10' }} py={{ base: '8', sm: '10' }}>
+            <Heading size="2xl" color="gray.900" mb="2">
               Welcome to Amiga Fertility
-            </h2>
-            <p className="text-gray-700 mb-8 text-lg">
+            </Heading>
+            <Text color="gray.700" mb="8" fontSize="lg">
               Let's start by collecting some basic information to personalize your experience.
-            </p>
+            </Text>
 
             {errors._form && (
-              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-md">
-                <p className="text-sm text-red-700 font-medium">{errors._form}</p>
-              </div>
+              <Alert.Root status="error" mb="6">
+                <Alert.Title>{errors._form}</Alert.Title>
+              </Alert.Root>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Personal Information Section */}
-              <div className="border-t border-beige-200 pt-8">
-                <h3 className="text-2xl font-serif font-bold text-primary-600 mb-6">Personal Information</h3>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
-                      First Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="first_name"
-                      name="first_name"
-                      value={formData.first_name}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                    {errors.first_name && (
-                      <p className="mt-1 text-sm text-red-600">{errors.first_name}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
-                      Last Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="last_name"
-                      name="last_name"
-                      value={formData.last_name}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                    {errors.last_name && (
-                      <p className="mt-1 text-sm text-red-600">{errors.last_name}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="preferred_name" className="block text-sm font-medium text-gray-700">
-                      Preferred Name (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      id="preferred_name"
-                      name="preferred_name"
-                      value={formData.preferred_name}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="date_of_birth" className="block text-sm font-medium text-gray-700">
-                      Date of Birth *
-                    </label>
-                    <input
-                      type="date"
-                      id="date_of_birth"
-                      name="date_of_birth"
-                      value={formData.date_of_birth}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                    {errors.date_of_birth && (
-                      <p className="mt-1 text-sm text-red-600">{errors.date_of_birth}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Information Section */}
-              <div className="border-t border-beige-200 pt-8">
-                <h3 className="text-2xl font-serif font-bold text-primary-600 mb-6">Contact Information</h3>
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
-                      Phone Number * <span className="text-gray-500 text-xs">(Include country code, e.g., +1)</span>
-                    </label>
-                    <input
-                      type="tel"
-                      id="phone_number"
-                      name="phone_number"
-                      value={formData.phone_number}
-                      onChange={handleChange}
-                      placeholder="+1234567890"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                    {errors.phone_number && (
-                      <p className="mt-1 text-sm text-red-600">{errors.phone_number}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="address_line1" className="block text-sm font-medium text-gray-700">
-                      Address Line 1 *
-                    </label>
-                    <input
-                      type="text"
-                      id="address_line1"
-                      name="address_line1"
-                      value={formData.address_line1}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                    {errors.address_line1 && (
-                      <p className="mt-1 text-sm text-red-600">{errors.address_line1}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="address_line2" className="block text-sm font-medium text-gray-700">
-                      Address Line 2 (Optional)
-                    </label>
-                    <input
-                      type="text"
-                      id="address_line2"
-                      name="address_line2"
-                      value={formData.address_line2}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div>
-                      <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-                        City *
-                      </label>
-                      <input
-                        type="text"
-                        id="city"
-                        name="city"
-                        value={formData.city}
+            <form onSubmit={handleSubmit}>
+              <VStack gap="8" align="stretch">
+                {/* Personal Information Section */}
+                <Box borderTopWidth="1px" borderColor="gray.200" pt="8">
+                  <Heading size="xl" color="brand.600" mb="6">
+                    Personal Information
+                  </Heading>
+                  <Grid templateColumns={{ base: '1fr', sm: 'repeat(2, 1fr)' }} gap="4">
+                    <Field label="First Name" required invalid={!!errors.first_name} errorText={errors.first_name}>
+                      <Input
+                        name="first_name"
+                        value={formData.first_name}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
                       />
-                      {errors.city && (
-                        <p className="mt-1 text-sm text-red-600">{errors.city}</p>
-                      )}
-                    </div>
+                    </Field>
 
-                    <div>
-                      <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-                        State/Province *
-                      </label>
-                      <input
-                        type="text"
-                        id="state"
-                        name="state"
-                        value={formData.state}
+                    <Field label="Last Name" required invalid={!!errors.last_name} errorText={errors.last_name}>
+                      <Input
+                        name="last_name"
+                        value={formData.last_name}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
                       />
-                      {errors.state && (
-                        <p className="mt-1 text-sm text-red-600">{errors.state}</p>
-                      )}
-                    </div>
+                    </Field>
 
-                    <div>
-                      <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700">
-                        Postal Code *
-                      </label>
-                      <input
-                        type="text"
-                        id="postal_code"
-                        name="postal_code"
-                        value={formData.postal_code}
+                    <Field label="Preferred Name (Optional)">
+                      <Input
+                        name="preferred_name"
+                        value={formData.preferred_name}
                         onChange={handleChange}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
                       />
-                      {errors.postal_code && (
-                        <p className="mt-1 text-sm text-red-600">{errors.postal_code}</p>
-                      )}
-                    </div>
-                  </div>
+                    </Field>
 
-                  <div>
-                    <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-                      Country *
-                    </label>
-                    <input
-                      type="text"
-                      id="country"
-                      name="country"
-                      value={formData.country}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                    {errors.country && (
-                      <p className="mt-1 text-sm text-red-600">{errors.country}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+                    <Field label="Date of Birth" required invalid={!!errors.date_of_birth} errorText={errors.date_of_birth}>
+                      <Input
+                        type="date"
+                        name="date_of_birth"
+                        value={formData.date_of_birth}
+                        onChange={handleChange}
+                      />
+                    </Field>
+                  </Grid>
+                </Box>
 
-              {/* Partner Information Section */}
-              <div className="border-t border-beige-200 pt-8">
-                <h3 className="text-2xl font-serif font-bold text-primary-600 mb-3">Partner Information (Optional)</h3>
-                <p className="text-base text-gray-700 mb-6">
-                  If you have a partner involved in your fertility journey, please share their information.
-                </p>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="partner_name" className="block text-sm font-medium text-gray-700">
-                      Partner's Name
-                    </label>
-                    <input
-                      type="text"
-                      id="partner_name"
-                      name="partner_name"
-                      value={formData.partner_name}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                  </div>
+                {/* Contact Information Section */}
+                <Box borderTopWidth="1px" borderColor="gray.200" pt="8">
+                  <Heading size="xl" color="brand.600" mb="6">
+                    Contact Information
+                  </Heading>
+                  <VStack gap="4" align="stretch">
+                    <Field
+                      label="Phone Number"
+                      required
+                      invalid={!!errors.phone_number}
+                      errorText={errors.phone_number}
+                      helperText="Include country code, e.g., +1"
+                    >
+                      <Input
+                        type="tel"
+                        name="phone_number"
+                        value={formData.phone_number}
+                        onChange={handleChange}
+                        placeholder="+1234567890"
+                      />
+                    </Field>
 
-                  <div>
-                    <label htmlFor="partner_email" className="block text-sm font-medium text-gray-700">
-                      Partner's Email
-                    </label>
-                    <input
-                      type="email"
-                      id="partner_email"
-                      name="partner_email"
-                      value={formData.partner_email}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                    {errors.partner_email && (
-                      <p className="mt-1 text-sm text-red-600">{errors.partner_email}</p>
-                    )}
-                  </div>
+                    <Field label="Address Line 1" required invalid={!!errors.address_line1} errorText={errors.address_line1}>
+                      <Input
+                        name="address_line1"
+                        value={formData.address_line1}
+                        onChange={handleChange}
+                      />
+                    </Field>
 
-                  <div>
-                    <label htmlFor="partner_phone" className="block text-sm font-medium text-gray-700">
-                      Partner's Phone
-                    </label>
-                    <input
-                      type="tel"
-                      id="partner_phone"
-                      name="partner_phone"
-                      value={formData.partner_phone}
-                      onChange={handleChange}
-                      placeholder="+1234567890"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    />
-                    {errors.partner_phone && (
-                      <p className="mt-1 text-sm text-red-600">{errors.partner_phone}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
+                    <Field label="Address Line 2 (Optional)">
+                      <Input
+                        name="address_line2"
+                        value={formData.address_line2}
+                        onChange={handleChange}
+                      />
+                    </Field>
 
-              {/* Fertility-Specific Questions Section */}
-              <div className="border-t-2 border-purple-300 pt-8">
-                <h3 className="text-2xl font-serif font-bold text-purple-600 mb-6">Your Fertility Journey</h3>
-
-                {/* What are you looking for? */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    What are you looking for? *
-                  </label>
-                  <div className="space-y-2">
-                    {[
-                      'In Vitro Fertilization (IVF)',
-                      'Intrauterine Insemination (IUI)',
-                      'Egg Freezing',
-                      'Embryo Freezing',
-                      'Genetic Testing',
-                      'Fertility Assessment',
-                      'Donor Services',
-                      'Surrogacy Services'
-                    ].map((option) => (
-                      <div key={option} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`fertility_goal_${option}`}
-                          checked={formData.fertility_goals.includes(option)}
-                          onChange={() => handleCheckboxArrayChange('fertility_goals', option)}
-                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    <Grid templateColumns={{ base: '1fr', sm: 'repeat(3, 1fr)' }} gap="4">
+                      <Field label="City" required invalid={!!errors.city} errorText={errors.city}>
+                        <Input
+                          name="city"
+                          value={formData.city}
+                          onChange={handleChange}
                         />
-                        <label
-                          htmlFor={`fertility_goal_${option}`}
-                          className="ml-3 text-sm text-gray-700"
-                        >
-                          {option}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  {errors.fertility_goals && (
-                    <p className="mt-1 text-sm text-red-600">{errors.fertility_goals}</p>
-                  )}
-                </div>
+                      </Field>
 
-                {/* Are you concerned about? */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Are you concerned about...? (Optional)
-                  </label>
-                  <div className="space-y-2">
-                    {[
-                      'Polycystic Ovary Syndrome (PCOS)',
-                      'Endometriosis',
-                      'Low Ovarian Reserve',
-                      'Male Factor Infertility',
-                      'Recurrent Pregnancy Loss',
-                      'Advanced Maternal Age',
-                      'Unexplained Infertility'
-                    ].map((option) => (
-                      <div key={option} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          id={`health_concern_${option}`}
-                          checked={formData.health_concerns.includes(option)}
-                          onChange={() => handleCheckboxArrayChange('health_concerns', option)}
-                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                      <Field label="State/Province" required invalid={!!errors.state} errorText={errors.state}>
+                        <Input
+                          name="state"
+                          value={formData.state}
+                          onChange={handleChange}
                         />
-                        <label
-                          htmlFor={`health_concern_${option}`}
-                          className="ml-3 text-sm text-gray-700"
-                        >
-                          {option}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  {errors.health_concerns && (
-                    <p className="mt-1 text-sm text-red-600">{errors.health_concerns}</p>
-                  )}
-                </div>
+                      </Field>
 
-                {/* Treatment Timeline */}
-                <div className="mb-6">
-                  <label htmlFor="treatment_timeline" className="block text-sm font-medium text-gray-700">
-                    What is your desired time frame for the treatment? *
-                  </label>
-                  <input
-                    type="text"
-                    id="treatment_timeline"
-                    name="treatment_timeline"
-                    value={formData.treatment_timeline}
-                    onChange={handleChange}
-                    placeholder="e.g., Within 3 months, 6-12 months, Just exploring options"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                  />
-                  {errors.treatment_timeline && (
-                    <p className="mt-1 text-sm text-red-600">{errors.treatment_timeline}</p>
-                  )}
-                </div>
+                      <Field label="Postal Code" required invalid={!!errors.postal_code} errorText={errors.postal_code}>
+                        <Input
+                          name="postal_code"
+                          value={formData.postal_code}
+                          onChange={handleChange}
+                        />
+                      </Field>
+                    </Grid>
 
-                {/* Past Experience */}
-                <div className="mb-6">
-                  <label htmlFor="past_experience" className="block text-sm font-medium text-gray-700">
-                    Tell us a bit more: What have you tried in the past? What has been the biggest challenge? How could we assist you best? *
-                  </label>
-                  <textarea
-                    id="past_experience"
-                    name="past_experience"
-                    value={formData.past_experience}
-                    onChange={handleChange}
-                    rows={5}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                    placeholder="Please share your fertility journey so far..."
-                  />
-                  {errors.past_experience && (
-                    <p className="mt-1 text-sm text-red-600">{errors.past_experience}</p>
-                  )}
-                </div>
+                    <Field label="Country" required invalid={!!errors.country} errorText={errors.country}>
+                      <Input
+                        name="country"
+                        value={formData.country}
+                        onChange={handleChange}
+                      />
+                    </Field>
+                  </VStack>
+                </Box>
 
-                {/* Referral Source */}
-                <div className="mb-6">
-                  <label htmlFor="referral_source" className="block text-sm font-medium text-gray-700">
-                    How did you hear about Amiga Fertility? *
-                  </label>
-                  <input
-                    type="text"
-                    id="referral_source"
-                    name="referral_source"
-                    value={formData.referral_source}
-                    onChange={handleChange}
-                    placeholder="e.g., Google search, Friend referral, Social media, Doctor recommendation"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border"
-                  />
-                  {errors.referral_source && (
-                    <p className="mt-1 text-sm text-red-600">{errors.referral_source}</p>
-                  )}
-                </div>
+                {/* Partner Information Section */}
+                <Box borderTopWidth="1px" borderColor="gray.200" pt="8">
+                  <Heading size="xl" color="brand.600" mb="3">
+                    Partner Information (Optional)
+                  </Heading>
+                  <Text fontSize="base" color="gray.700" mb="6">
+                    If you have a partner involved in your fertility journey, please share their information.
+                  </Text>
+                  <Grid templateColumns={{ base: '1fr', sm: 'repeat(2, 1fr)' }} gap="4">
+                    <Field label="Partner's Name">
+                      <Input
+                        name="partner_name"
+                        value={formData.partner_name}
+                        onChange={handleChange}
+                      />
+                    </Field>
 
-                {/* Terms and Conditions */}
-                <div>
-                  <div className="flex items-start">
-                    <input
-                      type="checkbox"
-                      id="terms_accepted"
+                    <Field label="Partner's Email" invalid={!!errors.partner_email} errorText={errors.partner_email}>
+                      <Input
+                        type="email"
+                        name="partner_email"
+                        value={formData.partner_email}
+                        onChange={handleChange}
+                      />
+                    </Field>
+
+                    <Field label="Partner's Phone" invalid={!!errors.partner_phone} errorText={errors.partner_phone}>
+                      <Input
+                        type="tel"
+                        name="partner_phone"
+                        value={formData.partner_phone}
+                        onChange={handleChange}
+                        placeholder="+1234567890"
+                      />
+                    </Field>
+                  </Grid>
+                </Box>
+
+                {/* Fertility-Specific Questions Section */}
+                <Box borderTopWidth="2px" borderColor="purple.300" pt="8">
+                  <Heading size="xl" color="purple.600" mb="6">
+                    Your Fertility Journey
+                  </Heading>
+
+                  {/* What are you looking for? */}
+                  <Box mb="6">
+                    <Field label="What are you looking for?" required invalid={!!errors.fertility_goals} errorText={errors.fertility_goals}>
+                      <VStack align="start" gap="2">
+                        {fertilityGoalsOptions.map((option) => (
+                          <Checkbox
+                            key={option}
+                            checked={formData.fertility_goals.includes(option)}
+                            onCheckedChange={() => handleCheckboxArrayChange('fertility_goals', option)}
+                          >
+                            {option}
+                          </Checkbox>
+                        ))}
+                      </VStack>
+                    </Field>
+                  </Box>
+
+                  {/* Are you concerned about? */}
+                  <Box mb="6">
+                    <Field label="Are you concerned about...? (Optional)" invalid={!!errors.health_concerns} errorText={errors.health_concerns}>
+                      <VStack align="start" gap="2">
+                        {healthConcernsOptions.map((option) => (
+                          <Checkbox
+                            key={option}
+                            checked={formData.health_concerns.includes(option)}
+                            onCheckedChange={() => handleCheckboxArrayChange('health_concerns', option)}
+                          >
+                            {option}
+                          </Checkbox>
+                        ))}
+                      </VStack>
+                    </Field>
+                  </Box>
+
+                  {/* Treatment Timeline */}
+                  <Box mb="6">
+                    <Field label="What is your desired time frame for the treatment?" required invalid={!!errors.treatment_timeline} errorText={errors.treatment_timeline}>
+                      <Input
+                        name="treatment_timeline"
+                        value={formData.treatment_timeline}
+                        onChange={handleChange}
+                        placeholder="e.g., Within 3 months, 6-12 months, Just exploring options"
+                      />
+                    </Field>
+                  </Box>
+
+                  {/* Past Experience */}
+                  <Box mb="6">
+                    <Field
+                      label="Tell us a bit more: What have you tried in the past? What has been the biggest challenge? How could we assist you best?"
+                      required
+                      invalid={!!errors.past_experience}
+                      errorText={errors.past_experience}
+                    >
+                      <Textarea
+                        name="past_experience"
+                        value={formData.past_experience}
+                        onChange={handleChange}
+                        rows={5}
+                        placeholder="Please share your fertility journey so far..."
+                      />
+                    </Field>
+                  </Box>
+
+                  {/* Referral Source */}
+                  <Box mb="6">
+                    <Field label="How did you hear about Amiga Fertility?" required invalid={!!errors.referral_source} errorText={errors.referral_source}>
+                      <Input
+                        name="referral_source"
+                        value={formData.referral_source}
+                        onChange={handleChange}
+                        placeholder="e.g., Google search, Friend referral, Social media, Doctor recommendation"
+                      />
+                    </Field>
+                  </Box>
+
+                  {/* Terms and Conditions */}
+                  <Field invalid={!!errors.terms_accepted} errorText={errors.terms_accepted}>
+                    <Checkbox
                       name="terms_accepted"
                       checked={formData.terms_accepted}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded mt-1"
-                    />
-                    <label htmlFor="terms_accepted" className="ml-3 text-sm text-gray-700">
-                      I accept the{' '}
-                      <a
-                        href="/terms"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary-600 hover:text-primary-500 underline"
-                      >
-                        Terms and Conditions
-                      </a>{' '}
-                      and understand that my information will be used to provide personalized fertility care services. *
-                    </label>
-                  </div>
-                  {errors.terms_accepted && (
-                    <p className="mt-1 text-sm text-red-600">{errors.terms_accepted}</p>
-                  )}
-                </div>
-              </div>
+                      onCheckedChange={(e) => {
+                        const checked = e.checked === true
+                        setFormData(prev => ({ ...prev, terms_accepted: checked }))
+                        if (errors.terms_accepted) {
+                          setErrors(prev => {
+                            const newErrors = { ...prev }
+                            delete newErrors.terms_accepted
+                            return newErrors
+                          })
+                        }
+                      }}
+                    >
+                      <Text fontSize="sm" color="gray.700">
+                        I accept the{' '}
+                        <ChakraLink
+                          href="/terms"
+                          target="_blank"
+                          color="brand.600"
+                          _hover={{ color: 'brand.500' }}
+                          textDecoration="underline"
+                        >
+                          Terms and Conditions
+                        </ChakraLink>{' '}
+                        and understand that my information will be used to provide personalized fertility care services. *
+                      </Text>
+                    </Checkbox>
+                  </Field>
+                </Box>
 
-              {/* Submit Button */}
-              <div className="pt-8 border-t border-beige-200">
-                <div className="flex justify-end">
-                  <button
+                {/* Submit Button */}
+                <Box pt="8" borderTopWidth="1px" borderColor="gray.200">
+                  <Button
                     type="submit"
+                    colorScheme="brand"
+                    size="lg"
                     disabled={isSubmitting}
-                    className="inline-flex justify-center py-3 px-8 border border-transparent shadow-md text-base font-serif font-bold rounded-lg text-white bg-primary-500 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    px="8"
+                    py="6"
+                    fontSize="base"
+                    fontWeight="bold"
+                    alignSelf="flex-end"
                   >
                     {isSubmitting ? 'Saving...' : 'Complete Setup'}
-                  </button>
-                </div>
-              </div>
+                  </Button>
+                </Box>
+              </VStack>
             </form>
-          </div>
-        </div>
-      </div>
-    </div>
+          </Card.Body>
+        </Card.Root>
+      </Container>
+    </PublicLayout>
   )
 }

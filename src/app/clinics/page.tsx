@@ -1,8 +1,21 @@
 import { auth0 } from '@/lib/auth0'
 import { redirect } from 'next/navigation'
-import Navigation from '@/components/Navigation'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import type { Clinic } from '@/lib/supabase/types'
+import SidebarLayout from '@/components/layouts/SidebarLayout'
+import {
+  Box,
+  Container,
+  Heading,
+  Text,
+  Grid,
+  Flex,
+  Separator,
+  Badge,
+  HStack,
+} from '@chakra-ui/react'
+import { Card } from '@/components/ui/card'
+import { Alert } from '@/components/ui/alert'
 
 export default async function ClinicsPage() {
   const session = await auth0.getSession()
@@ -22,119 +35,156 @@ export default async function ClinicsPage() {
   }
 
   return (
-    <>
-      <Navigation />
-      <main className="min-h-screen bg-gradient-to-b from-beige-50 to-beige-100">
-        <div className="max-w-7xl mx-auto py-8 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="mb-10">
-              <h1 className="text-4xl font-serif font-bold text-primary-600">
-                Fertility Clinics
-              </h1>
-              <p className="mt-3 text-lg text-gray-700">
-                Explore fertility clinics that match your needs
-              </p>
-              <div className="w-24 h-1 bg-purple-500 mt-4"></div>
-            </div>
+    <SidebarLayout>
+      <Container maxW="7xl" py="8" px={{ base: '4', sm: '6', lg: '8' }}>
+        {/* Header */}
+        <Box mb="10">
+          <Heading size="3xl" color="brand.600" mb="3">
+            Fertility Clinics
+          </Heading>
+          <Text fontSize="lg" color="gray.700">
+            Explore fertility clinics that match your needs
+          </Text>
+          <Separator width="24" borderColor="purple.500" borderWidth="2px" mt="4" />
+        </Box>
 
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-400 rounded-r-md">
-                <p className="text-sm text-red-700 font-medium">
-                  Error loading clinics. Please try again later.
-                </p>
-              </div>
-            )}
+        {/* Error Alert */}
+        {error && (
+          <Alert.Root status="error" mb="6">
+            <Alert.Title>Error loading clinics. Please try again later.</Alert.Title>
+          </Alert.Root>
+        )}
 
-            {!clinics || clinics.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-xl shadow-md border border-beige-200">
-                <p className="text-gray-600 text-lg">No clinics found. Please run the database migrations.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {clinics.map((clinic: Clinic) => (
-                  <div
-                    key={clinic.id}
-                    className="bg-white overflow-hidden shadow-md rounded-xl border border-beige-200 hover:shadow-lg transition-shadow"
-                  >
-                    <div className="p-6">
-                      <h2 className="text-2xl font-serif font-bold text-primary-600 mb-3">
-                        {clinic.name}
-                      </h2>
+        {/* Clinics List */}
+        {!clinics || clinics.length === 0 ? (
+          <Card.Root bg="white">
+            <Card.Body textAlign="center" py="12">
+              <Text color="gray.600" fontSize="lg">
+                No clinics found. Please run the database migrations.
+              </Text>
+            </Card.Body>
+          </Card.Root>
+        ) : (
+          <Grid
+            templateColumns={{ base: '1fr', lg: 'repeat(2, 1fr)' }}
+            gap="6"
+          >
+            {clinics.map((clinic: Clinic) => (
+              <Card.Root
+                key={clinic.id}
+                bg="white"
+                borderWidth="1px"
+                borderColor="gray.200"
+                _hover={{ shadow: 'lg' }}
+                transition="all 0.2s"
+              >
+                <Card.Body>
+                  {/* Clinic Name */}
+                  <Heading size="xl" color="brand.600" mb="3">
+                    {clinic.name}
+                  </Heading>
 
-                      {/* Locations */}
-                      <div className="mb-4">
-                        <h3 className="text-sm font-bold text-gray-700 mb-2">Locations</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {clinic.locations.map((location) => (
-                            <span
-                              key={location}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-beige-100 text-gray-800"
-                            >
-                              📍 {location}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                  {/* Locations */}
+                  <Box mb="4">
+                    <Text fontSize="sm" fontWeight="bold" color="gray.700" mb="2">
+                      Locations
+                    </Text>
+                    <Flex flexWrap="wrap" gap="2">
+                      {clinic.locations.map((location) => (
+                        <Badge
+                          key={location}
+                          colorScheme="gray"
+                          variant="subtle"
+                          px="3"
+                          py="1"
+                        >
+                          📍 {location}
+                        </Badge>
+                      ))}
+                    </Flex>
+                  </Box>
 
-                      {/* Experience & Size */}
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm text-gray-600">Experience</p>
-                          <p className="text-lg font-serif font-bold text-gray-900">
-                            {clinic.years_experience} years
-                          </p>
-                        </div>
-                        {clinic.size && (
-                          <div>
-                            <p className="text-sm text-gray-600">Size</p>
-                            <p className="text-lg font-serif font-bold text-gray-900">
-                              {clinic.size} staff
-                            </p>
-                          </div>
-                        )}
-                      </div>
+                  {/* Experience & Size */}
+                  <Grid templateColumns="repeat(2, 1fr)" gap="4" mb="4">
+                    <Box>
+                      <Text fontSize="sm" color="gray.600" mb="1">
+                        Experience
+                      </Text>
+                      <Text fontSize="lg" fontWeight="bold" color="gray.900">
+                        {clinic.years_experience} years
+                      </Text>
+                    </Box>
+                    {clinic.size && (
+                      <Box>
+                        <Text fontSize="sm" color="gray.600" mb="1">
+                          Size
+                        </Text>
+                        <Text fontSize="lg" fontWeight="bold" color="gray.900">
+                          {clinic.size} staff
+                        </Text>
+                      </Box>
+                    )}
+                  </Grid>
 
-                      {/* Expertise */}
-                      <div className="mb-4">
-                        <h3 className="text-sm font-bold text-gray-700 mb-2">Expertise</h3>
-                        <div className="flex flex-wrap gap-2">
-                          {clinic.expertise.map((exp) => (
-                            <span
-                              key={exp}
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800"
-                            >
-                              {exp}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                  {/* Expertise */}
+                  <Box mb="4">
+                    <Text fontSize="sm" fontWeight="bold" color="gray.700" mb="2">
+                      Expertise
+                    </Text>
+                    <Flex flexWrap="wrap" gap="2">
+                      {clinic.expertise.map((exp) => (
+                        <Badge
+                          key={exp}
+                          colorScheme="purple"
+                          variant="subtle"
+                          px="3"
+                          py="1"
+                        >
+                          {exp}
+                        </Badge>
+                      ))}
+                    </Flex>
+                  </Box>
 
-                      {/* Description */}
-                      {clinic.description && (
-                        <div className="mb-4">
-                          <p className="text-sm text-gray-700 italic">
-                            {clinic.description}
-                          </p>
-                        </div>
-                      )}
+                  {/* Description */}
+                  {clinic.description && (
+                    <Box mb="4">
+                      <Text fontSize="sm" color="gray.700" fontStyle="italic">
+                        {clinic.description}
+                      </Text>
+                    </Box>
+                  )}
 
-                      {/* Price Range */}
-                      {clinic.price_range && (
-                        <div className="flex items-center justify-between pt-4 border-t border-beige-200">
-                          <span className="text-sm font-medium text-gray-600">Price Range</span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-primary-100 text-primary-700 uppercase">
-                            {clinic.price_range}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </main>
-    </>
+                  {/* Price Range */}
+                  {clinic.price_range && (
+                    <Flex
+                      align="center"
+                      justify="space-between"
+                      pt="4"
+                      borderTopWidth="1px"
+                      borderColor="gray.200"
+                    >
+                      <Text fontSize="sm" fontWeight="medium" color="gray.600">
+                        Price Range
+                      </Text>
+                      <Badge
+                        colorScheme="orange"
+                        variant="subtle"
+                        px="3"
+                        py="1"
+                        fontWeight="bold"
+                        textTransform="uppercase"
+                      >
+                        {clinic.price_range}
+                      </Badge>
+                    </Flex>
+                  )}
+                </Card.Body>
+              </Card.Root>
+            ))}
+          </Grid>
+        )}
+      </Container>
+    </SidebarLayout>
   )
 }

@@ -1,7 +1,19 @@
 import { redirect } from 'next/navigation'
-import Navigation from '@/components/Navigation'
-import Image from 'next/image'
 import { auth0 } from '@/lib/auth0'
+import SidebarLayout from '@/components/layouts/SidebarLayout'
+import {
+  Box,
+  Container,
+  Heading,
+  Text,
+  Flex,
+  Grid,
+  GridItem,
+  Badge,
+  Button,
+} from '@chakra-ui/react'
+import { Card } from '@/components/ui/card'
+import { Avatar } from '@/components/ui/avatar'
 
 export default async function ProfilePage() {
   const session = await auth0.getSession()
@@ -13,111 +25,159 @@ export default async function ProfilePage() {
   const user = session.user
 
   return (
-    <>
-      <Navigation />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Your Profile</h1>
-            <p className="mt-2 text-gray-600">
-              Manage your account information and preferences
-            </p>
-          </div>
+    <SidebarLayout>
+      <Container maxW="7xl" py="6" px={{ base: '4', sm: '6', lg: '8' }}>
+        {/* Header */}
+        <Box mb="8">
+          <Heading size="2xl" color="gray.900" mb="2">
+            Your Profile
+          </Heading>
+          <Text color="gray.600">
+            Manage your account information and preferences
+          </Text>
+        </Box>
 
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <div className="flex items-center">
-                {user.picture && (
-                  <Image
-                    src={user.picture}
-                    alt="Profile"
-                    width={64}
-                    height={64}
-                    className="rounded-full"
-                  />
-                )}
-                <div className="ml-4">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900">
-                    Account Information
-                  </h3>
-                  <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                    Personal details and authentication settings
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="border-t border-gray-200">
-              <dl>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Full name</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+        {/* Account Information Card */}
+        <Card.Root bg="white">
+          <Card.Header>
+            <Flex align="center" gap="4">
+              <Avatar
+                size="lg"
+                name={user.name || user.email || "User"}
+                src={user.picture || undefined}
+              />
+              <Box>
+                <Heading size="md" color="gray.900" mb="1">
+                  Account Information
+                </Heading>
+                <Text fontSize="sm" color="gray.500">
+                  Personal details and authentication settings
+                </Text>
+              </Box>
+            </Flex>
+          </Card.Header>
+          <Card.Body borderTopWidth="1px" borderColor="gray.200" p="0">
+            <Box>
+              {/* Full Name */}
+              <Grid
+                templateColumns={{ base: '1fr', sm: 'repeat(3, 1fr)' }}
+                gap="4"
+                bg="gray.50"
+                px={{ base: '4', sm: '6' }}
+                py="5"
+              >
+                <GridItem>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Full name
+                  </Text>
+                </GridItem>
+                <GridItem colSpan={{ base: 1, sm: 2 }}>
+                  <Text fontSize="sm" color="gray.900">
                     {user.name || 'Not provided'}
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Email address</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {user.email}
-                  </dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Account ID</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 font-mono">
-                    {user.sub}
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
-                    Email verified
-                  </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {user.email_verified ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Verified
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                        Not verified
-                      </span>
-                    )}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
+                  </Text>
+                </GridItem>
+              </Grid>
 
-          <div className="mt-8 bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Security Settings
-              </h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                Manage your authentication and security preferences
-              </p>
-            </div>
-            <div className="border-t border-gray-200 px-4 py-5 sm:px-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">
-                      Multi-Factor Authentication
-                    </h4>
-                    <p className="text-sm text-gray-500">
-                      Add an extra layer of security to your account
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-                  >
-                    Configure
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </>
+              {/* Email */}
+              <Grid
+                templateColumns={{ base: '1fr', sm: 'repeat(3, 1fr)' }}
+                gap="4"
+                bg="white"
+                px={{ base: '4', sm: '6' }}
+                py="5"
+              >
+                <GridItem>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Email address
+                  </Text>
+                </GridItem>
+                <GridItem colSpan={{ base: 1, sm: 2 }}>
+                  <Text fontSize="sm" color="gray.900">
+                    {user.email}
+                  </Text>
+                </GridItem>
+              </Grid>
+
+              {/* Account ID */}
+              <Grid
+                templateColumns={{ base: '1fr', sm: 'repeat(3, 1fr)' }}
+                gap="4"
+                bg="gray.50"
+                px={{ base: '4', sm: '6' }}
+                py="5"
+              >
+                <GridItem>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Account ID
+                  </Text>
+                </GridItem>
+                <GridItem colSpan={{ base: 1, sm: 2 }}>
+                  <Text fontSize="sm" color="gray.900" fontFamily="mono">
+                    {user.sub}
+                  </Text>
+                </GridItem>
+              </Grid>
+
+              {/* Email Verified */}
+              <Grid
+                templateColumns={{ base: '1fr', sm: 'repeat(3, 1fr)' }}
+                gap="4"
+                bg="white"
+                px={{ base: '4', sm: '6' }}
+                py="5"
+              >
+                <GridItem>
+                  <Text fontSize="sm" fontWeight="medium" color="gray.500">
+                    Email verified
+                  </Text>
+                </GridItem>
+                <GridItem colSpan={{ base: 1, sm: 2 }}>
+                  {user.email_verified ? (
+                    <Badge colorScheme="green" variant="subtle">
+                      Verified
+                    </Badge>
+                  ) : (
+                    <Badge colorScheme="yellow" variant="subtle">
+                      Not verified
+                    </Badge>
+                  )}
+                </GridItem>
+              </Grid>
+            </Box>
+          </Card.Body>
+        </Card.Root>
+
+        {/* Security Settings Card */}
+        <Card.Root bg="white" mt="8">
+          <Card.Header>
+            <Heading size="md" color="gray.900" mb="1">
+              Security Settings
+            </Heading>
+            <Text fontSize="sm" color="gray.500">
+              Manage your authentication and security preferences
+            </Text>
+          </Card.Header>
+          <Card.Body borderTopWidth="1px" borderColor="gray.200">
+            <Flex align="center" justify="space-between" gap="4" flexWrap="wrap">
+              <Box>
+                <Text fontSize="sm" fontWeight="medium" color="gray.900" mb="1">
+                  Multi-Factor Authentication
+                </Text>
+                <Text fontSize="sm" color="gray.500">
+                  Add an extra layer of security to your account
+                </Text>
+              </Box>
+              <Button
+                size="sm"
+                variant="outline"
+                colorScheme="gray"
+              >
+                Configure
+              </Button>
+            </Flex>
+          </Card.Body>
+        </Card.Root>
+      </Container>
+    </SidebarLayout>
   )
 }

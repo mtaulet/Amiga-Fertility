@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   // Check if patient has completed intake
   const { data: patient } = await supabaseAdmin
     .from('patients')
-    .select('intake_completed')
+    .select('intake_completed, first_name')
     .eq('auth0_id', session.user.sub)
     .single()
 
@@ -57,7 +57,7 @@ export default async function DashboardPage() {
         {/* Header */}
         <Box mb="10">
           <Heading size="3xl" color="brand.600" mb="3">
-            Welcome back, {user.name || 'Patient'}
+            Welcome back, {patient?.first_name || user.name || 'Patient'}
           </Heading>
           <Text fontSize="lg" color="gray.700">
             Your personalized fertility journey dashboard

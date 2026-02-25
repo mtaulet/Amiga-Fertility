@@ -47,8 +47,9 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
 
   const navItems = [
     { href: "/dashboard", icon: FiHome, label: "Dashboard" },
-    { href: "/profile", icon: FiUser, label: "Profile" },
+    { href: "/profile", icon: FiUser, label: "Patient" },
     { href: "/clinics", icon: FiMapPin, label: "Clinics" },
+    { href: "/clinics/select", icon: FiMapPin, label: "Clinic Selection" },
     { href: "/appointments", icon: FiCalendar, label: "Appointments" },
   ]
 
@@ -101,7 +102,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
                 </Text>
               </Box>
             </HStack>
-            <Link href="/api/auth/logout" style={{ textDecoration: 'none' }}>
+            <Link href="/auth/logout" style={{ textDecoration: 'none' }}>
               <Flex
                 align="center"
                 gap="2"

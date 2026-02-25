@@ -55,7 +55,7 @@ export default async function Home() {
             flexDirection={{ base: 'column', sm: 'row' }}
             w={{ base: 'full', sm: 'auto' }}
           >
-            <ChakraLink href="/api/auth/login" textDecoration="none" w={{ base: 'full', sm: 'auto' }}>
+            <ChakraLink href="/auth/login" textDecoration="none" w={{ base: 'full', sm: 'auto' }}>
               <Button
                 size="lg"
                 colorScheme="brand"
@@ -68,7 +68,7 @@ export default async function Home() {
                 Patient Login
               </Button>
             </ChakraLink>
-            <ChakraLink href="/api/auth/login?screen_hint=signup" textDecoration="none" w={{ base: 'full', sm: 'auto' }}>
+            <ChakraLink href="/auth/login?screen_hint=signup" textDecoration="none" w={{ base: 'full', sm: 'auto' }}>
               <Button
                 size="lg"
                 variant="outline"

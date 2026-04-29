@@ -4,7 +4,7 @@ import { Box, Flex, VStack, HStack, Text } from "@chakra-ui/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useUser } from "@auth0/nextjs-auth0/client"
-import { FiHome, FiUser, FiCalendar, FiMapPin, FiLogOut, FiSettings } from "react-icons/fi"
+import { FiHome, FiUser, FiCalendar, FiMapPin, FiLogOut, FiSettings, FiShield } from "react-icons/fi"
 import { ReactNode } from "react"
 import { Avatar } from "@/components/ui/avatar"
 
@@ -64,6 +64,7 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
   const { user, isLoading } = useUser()
   const onAppointments = pathname === '/appointments'
   const onTreatment = pathname.startsWith('/treatment')
+  const onAdmin = pathname.startsWith('/admin')
 
   const navItems = [
     { href: "/dashboard", icon: FiHome, label: "Dashboard" },
@@ -71,6 +72,10 @@ export default function SidebarLayout({ children }: SidebarLayoutProps) {
     { href: "/clinics/select", icon: FiMapPin, label: "Clinic Selection" },
     { href: "/appointments", icon: FiCalendar, label: onAppointments ? "Appointments >" : "Appointments" },
     { href: "/treatment", icon: FiCalendar, label: onTreatment ? "Treatment >" : "Treatment" },
+  ]
+
+  const adminNavItems = [
+    { href: "/admin", icon: FiShield, label: onAdmin ? "Admin >" : "Admin" },
   ]
 
   return (

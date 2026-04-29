@@ -2,11 +2,12 @@
 
 import { useUser } from '@auth0/nextjs-auth0/client'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function LoginPage() {
   const { user, isLoading } = useUser()
   const router = useRouter()
+  const [mode, setMode] = useState<'patient' | 'admin'>('patient')
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -25,9 +26,12 @@ export default function LoginPage() {
     )
   }
 
+  const isAdmin = mode === 'admin'
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-beige-50 to-beige-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
+
         {/* Logo */}
         <div className="text-center">
           <h1 className="text-5xl font-serif font-bold text-primary-500 mb-4 leading-tight">
@@ -36,35 +40,150 @@ export default function LoginPage() {
           <div className="w-24 h-1 bg-purple-500 mx-auto mb-6"></div>
         </div>
 
-        <div className="bg-white shadow-xl rounded-2xl border border-beige-200 px-8 py-10">
-          <div>
-            <h2 className="text-3xl font-serif font-bold text-center text-gray-900">
-              Patient Portal
-            </h2>
-            <p className="mt-3 text-center text-base text-gray-700">
-              Secure access to your fertility journey
-            </p>
-          </div>
-          <div className="mt-8 space-y-4">
-            <a
-              href="/auth/login"
-              className="group relative flex w-full justify-center rounded-xl border border-transparent bg-primary-500 py-4 px-6 text-base font-serif font-bold text-white hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all shadow-md"
-            >
-              Sign in to your account
-            </a>
-            <a
-              href="/auth/login?screen_hint=signup"
-              className="group relative flex w-full justify-center rounded-xl border-2 border-primary-500 bg-white py-4 px-6 text-base font-serif font-bold text-primary-600 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all"
-            >
-              Create new account
-            </a>
-          </div>
-          <div className="mt-8 text-xs text-center text-gray-600 border-t border-beige-200 pt-6">
-            <p>
-              Your data is protected with enterprise-grade security and HIPAA-compliant infrastructure
-            </p>
+        {/* Mode toggle */}
+        <div className="flex items-center justify-center mb-2">
+          <div
+            style={{
+              display: 'flex',
+              background: '#EDE3D3',
+              borderRadius: '99px',
+              padding: '4px',
+              gap: '2px',
+            }}
+          >
+            {(['patient', 'admin'] as const).map(m => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                style={{
+                  padding: '7px 22px',
+                  borderRadius: '99px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  background: mode === m ? 'white' : 'transparent',
+                  color: mode === m ? (m === 'admin' ? '#6B4D78' : '#D55A35') : '#9ca3af',
+                  boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                {m === 'patient' ? 'Patient' : 'Admin'}
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* Card */}
+        <div
+          style={{
+            background: 'white',
+            borderRadius: '16px',
+            border: `2px solid ${isAdmin ? '#E5DCE9' : '#FAF7F3'}`,
+            padding: '40px 32px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.07)',
+            transition: 'border-color 0.2s',
+          }}
+        >
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            {isAdmin && (
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#F5F1F7',
+                color: '#6B4D78',
+                borderRadius: '99px',
+                padding: '4px 14px',
+                fontSize: '12px',
+                fontWeight: 700,
+                letterSpacing: '0.06em',
+                textTransform: 'uppercase',
+                marginBottom: '12px',
+              }}>
+                <span>🔒</span> Admin Portal
+              </div>
+            )}
+            <h2 style={{
+              fontSize: '22px',
+              fontWeight: 700,
+              color: '#1a1a1a',
+              marginBottom: '6px',
+              fontFamily: 'serif',
+            }}>
+              {isAdmin ? 'Admin Sign In' : 'Patient Portal'}
+            </h2>
+            <p style={{ fontSize: '14px', color: '#6b7280' }}>
+              {isAdmin
+                ? 'Access the Amiga Fertility admin dashboard'
+                : 'Secure access to your fertility journey'}
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <a
+              href={isAdmin ? '/auth/login?returnTo=/admin/dashboard' : '/auth/login'}
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '100%',
+                padding: '14px 24px',
+                borderRadius: '12px',
+                fontWeight: 700,
+                fontSize: '15px',
+                textDecoration: 'none',
+                transition: 'all 0.15s',
+                background: isAdmin ? '#6B4D78' : '#E67449',
+                color: 'white',
+                border: 'none',
+              }}
+            >
+              {isAdmin ? 'Sign in as Admin' : 'Sign in to your account'}
+            </a>
+
+            {!isAdmin && (
+              <a
+                href="/auth/login?screen_hint=signup"
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  width: '100%',
+                  padding: '14px 24px',
+                  borderRadius: '12px',
+                  fontWeight: 700,
+                  fontSize: '15px',
+                  textDecoration: 'none',
+                  transition: 'all 0.15s',
+                  background: 'white',
+                  color: '#D55A35',
+                  border: '2px solid #E67449',
+                }}
+              >
+                Create new account
+              </a>
+            )}
+          </div>
+
+          {/* Footer note */}
+          <div style={{
+            marginTop: '24px',
+            paddingTop: '20px',
+            borderTop: '1px solid #f3f4f6',
+            fontSize: '12px',
+            color: '#9ca3af',
+            textAlign: 'center',
+          }}>
+            {isAdmin
+              ? 'Admin access is restricted. Contact your system administrator if you need access.'
+              : 'Your data is protected with enterprise-grade security and HIPAA-compliant infrastructure'}
+          </div>
+        </div>
+
       </div>
     </div>
   )

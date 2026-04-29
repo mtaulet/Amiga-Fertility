@@ -169,6 +169,10 @@ export default function IntakePage() {
 
       if (!response.ok) {
         const data = await response.json()
+        if (response.status === 401) {
+          router.push('/auth/login')
+          return
+        }
         if (data.details) {
           const fieldErrors: Record<string, string> = {}
           data.details.forEach((err: any) => {
@@ -176,7 +180,7 @@ export default function IntakePage() {
           })
           setErrors(fieldErrors)
         } else {
-          throw new Error(data.error || 'Failed to submit form')
+          setErrors({ _form: data.error || 'An error occurred. Please try again.' })
         }
         return
       }
@@ -421,20 +425,22 @@ export default function IntakePage() {
                   <Heading size="xl" color="purple.600" mb="6">Your Fertility Journey</Heading>
 
                   <Box mb="6">
-                    <Field label="What are you looking for?" invalid={!!errors.fertility_goals} errorText={errors.fertility_goals}>
-                      <VStack align="start" gap="2">
-                        {fertilityGoalsOptions.map((option, i) => (
-                          <Checkbox
-                            key={option}
-                            id={`fertility_goal_${i}`}
-                            checked={formData.fertility_goals.includes(option)}
-                            onCheckedChange={() => handleCheckboxArrayChange('fertility_goals', option)}
-                          >
-                            {option}
-                          </Checkbox>
-                        ))}
-                      </VStack>
-                    </Field>
+                    <Text fontSize="sm" fontWeight="medium" mb="2">What are you looking for?</Text>
+                    <VStack align="start" gap="2">
+                      {fertilityGoalsOptions.map((option, i) => (
+                        <Checkbox
+                          key={option}
+                          id={`fertility_goal_${i}`}
+                          checked={formData.fertility_goals.includes(option)}
+                          onCheckedChange={() => handleCheckboxArrayChange('fertility_goals', option)}
+                        >
+                          {option}
+                        </Checkbox>
+                      ))}
+                    </VStack>
+                    {errors.fertility_goals && (
+                      <Text color="red.500" fontSize="sm" mt="1">{errors.fertility_goals}</Text>
+                    )}
                   </Box>
 
                   {showStorageDuration && (
@@ -469,20 +475,22 @@ export default function IntakePage() {
                   </Box>
 
                   <Box mb="6">
-                    <Field label="Are you concerned about...? (Optional)" invalid={!!errors.health_concerns} errorText={errors.health_concerns}>
-                      <VStack align="start" gap="2">
-                        {healthConcernsOptions.map((option, i) => (
-                          <Checkbox
-                            key={option}
-                            id={`health_concern_${i}`}
-                            checked={formData.health_concerns.includes(option)}
-                            onCheckedChange={() => handleCheckboxArrayChange('health_concerns', option)}
-                          >
-                            {option}
-                          </Checkbox>
-                        ))}
-                      </VStack>
-                    </Field>
+                    <Text fontSize="sm" fontWeight="medium" mb="2">Are you concerned about...? (Optional)</Text>
+                    <VStack align="start" gap="2">
+                      {healthConcernsOptions.map((option, i) => (
+                        <Checkbox
+                          key={option}
+                          id={`health_concern_${i}`}
+                          checked={formData.health_concerns.includes(option)}
+                          onCheckedChange={() => handleCheckboxArrayChange('health_concerns', option)}
+                        >
+                          {option}
+                        </Checkbox>
+                      ))}
+                    </VStack>
+                    {errors.health_concerns && (
+                      <Text color="red.500" fontSize="sm" mt="1">{errors.health_concerns}</Text>
+                    )}
                   </Box>
 
                   <Box mb="6">

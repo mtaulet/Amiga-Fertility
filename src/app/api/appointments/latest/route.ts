@@ -16,31 +16,36 @@ export async function GET() {
       .single()
 
     if (!patient) {
-      return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
+      return NextResponse.json({ appointment: null })
     }
 
     const { data: appointment, error } = await supabaseAdmin
       .from('appointments')
-      .select('*, clinics(name)')
+      .select('*')
       .eq('patient_id', patient.id)
-      .order('appointment_date', { ascending: true })
+      .order('created_at', { ascending: false })
       .limit(1)
       .single()
 
-    if (error && error.code !== 'PGRST116') throw error
-
-    // Flatten clinic name from join
-    let result = null
-    if (appointment) {
-      const { clinics, ...rest } = appointment as any
-      result = { ...rest, clinic_name: clinics?.name ?? null }
+    if (error) {
+      if (error.code === 'PGRST116') return NextResponse.json({ appointment: null })
+      throw error
     }
 
-    return NextResponse.json({ appointment: result })
+    // Fetch clinic name separately to avoid join issues
+    let clinicName: string | null = null
+    if (appointment.clinic_id) {
+      const { data: clinic } = await supabaseAdmin
+        .from('clinics')
+        .select('name')
+        .eq('id', appointment.clinic_id)
+        .single()
+      clinicName = clinic?.name ?? null
+    }
+
+    return NextResponse.json({ appointment: { ...appointment, clinic_name: clinicName } })
   } catch (error: any) {
-    return NextResponse.json(
-      { error: 'Failed to fetch appointment' },
-      { status: 500 }
-    )
+    console.error('Failed to fetch latest appointment:', error)
+    return NextResponse.json({ error: error.message ?? 'Failed to fetch appointment' }, { status: 500 })
   }
 }

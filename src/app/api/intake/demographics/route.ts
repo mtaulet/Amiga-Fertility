@@ -68,8 +68,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const message = process.env.NODE_ENV === 'development'
+      ? (error.message || 'Failed to save demographics')
+      : 'Failed to save demographics'
+
     return NextResponse.json(
-      { error: 'Failed to save demographics' },
+      { error: message },
       { status: 500 }
     )
   }

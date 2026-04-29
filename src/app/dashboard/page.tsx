@@ -55,14 +55,14 @@ export default async function DashboardPage() {
     <SidebarLayout>
       <Container maxW="7xl" py="8" px={{ base: '4', sm: '6', lg: '8' }}>
         {/* Header */}
-        <Box mb="10">
-          <Heading size="3xl" color="brand.600" mb="3">
+        <Box mb="8">
+          <Heading size="3xl" color="brand.600" mb="1">
             Welcome back, {patient?.first_name || user.name || 'Patient'}
           </Heading>
-          <Text fontSize="lg" color="gray.700">
+          <Separator width="24" borderColor="purple.500" borderWidth="2px" mb="3" />
+          <Text fontSize="md" color="gray.500">
             Your personalized fertility journey dashboard
           </Text>
-          <Separator width="24" borderColor="purple.500" borderWidth="2px" mt="4" />
         </Box>
 
         {/* Stats Cards */}

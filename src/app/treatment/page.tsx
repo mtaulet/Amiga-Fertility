@@ -318,8 +318,9 @@ export default function TreatmentPage() {
       <Container maxW="7xl" py="8" px={{ base: '4', sm: '6', lg: '8' }}>
 
         {/* Header */}
-        <Box mb="2">
+        <Box mb="8">
           <Heading size="3xl" color="brand.600" mb="1">Treatment</Heading>
+          <Separator borderColor="purple.500" borderWidth="2px" width="24" mb="3" />
           <Flex align="center" gap="3" wrap="wrap">
             {generatedAt && (
               <Text fontSize="sm" color="gray.500">
@@ -333,8 +334,6 @@ export default function TreatmentPage() {
             {error && <Text fontSize="xs" color="red.500">{error}</Text>}
           </Flex>
         </Box>
-
-        <Separator borderColor="purple.500" borderWidth="2px" width="24" mb="8" />
 
         {events.length === 0 ? (
           <Card.Root bg="white" borderWidth="1px" borderColor="gray.200">

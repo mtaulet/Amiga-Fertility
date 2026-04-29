@@ -12,6 +12,7 @@ import {
   Heading,
   Input,
   NativeSelect,
+  Separator,
   Text,
   Textarea,
   VStack,
@@ -183,6 +184,7 @@ export default function ScheduleAvailabilityPage() {
         {/* Header */}
         <Box mb="6">
           <Heading size="3xl" color="brand.600" mb="1">Schedule an appointment</Heading>
+          <Separator borderColor="purple.500" borderWidth="2px" width="24" mb="3" />
           {loadingClinic ? (
             <Text fontSize="sm" color="gray.400">Loading…</Text>
           ) : clinic ? (

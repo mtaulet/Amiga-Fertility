@@ -5,15 +5,16 @@ import { useRouter } from 'next/navigation'
 import SidebarLayout from '@/components/layouts/SidebarLayout'
 import type { Clinic } from '@/lib/supabase/types'
 import {
+  Badge,
   Box,
+  Button,
   Container,
   Flex,
-  Heading,
-  Text,
   Grid,
-  Button,
-  Badge,
+  Heading,
   NativeSelect,
+  Separator,
+  Text,
   Textarea,
 } from '@chakra-ui/react'
 
@@ -286,6 +287,72 @@ function ClinicDetailPanel({ clinic, emptyMessage, action, secondaryAction }: Cl
 }
 
 // ---------------------------------------------------------------------------
+// Scoring algorithm
+// ---------------------------------------------------------------------------
+type PatientPrefs = {
+  preferenceRank: string[]
+  city: string | null
+  country: string | null
+  fertilityGoals: string[]
+}
+
+const PRICE_SCORE: Record<string, number> = { low: 1.0, med: 0.67, 'med-high': 0.33, high: 0.0 }
+
+function scoreClinic(clinic: Clinic, prefs: PatientPrefs, maxYears: number): number {
+  const weights = [3, 2, 1]
+  let score = 0
+
+  prefs.preferenceRank.slice(0, 3).forEach((pref, i) => {
+    const w = weights[i] ?? 0
+    let component = 0
+
+    if (pref === 'Budget') {
+      component = PRICE_SCORE[clinic.price_range ?? 'high'] ?? 0.5
+
+    } else if (pref === 'Location') {
+      const locs = clinic.locations.map(l => l.toLowerCase())
+      const city = prefs.city?.toLowerCase() ?? ''
+      const country = prefs.country?.toLowerCase() ?? ''
+      if (city && locs.some(l => l.includes(city))) component = 1.0
+      else if (country && locs.some(l => l.includes(country))) component = 0.5
+
+    } else if (pref === 'Reputation' || pref === 'Success rates') {
+      component = maxYears > 0 ? clinic.years_experience / maxYears : 0.5
+
+    } else if (pref === 'Patient care' || pref === 'Technology' || pref === 'High throughput') {
+      // Score by how many fertility goals align with clinic expertise
+      const goals = prefs.fertilityGoals.map(g => g.toLowerCase())
+      const expertise = clinic.expertise.map(e => e.toLowerCase())
+      const matches = goals.filter(g => expertise.some(e => e.includes(g.split(' ')[0]) || g.includes(e.split(' ')[0]))).length
+      component = goals.length > 0 ? matches / goals.length : 0.5
+    }
+
+    score += w * component
+  })
+
+  return score
+}
+
+function deriveAmigaRecsScored(clinics: Clinic[], slots: SlotPair, prefs: PatientPrefs): SlotPair {
+  const usedIds = new Set(slots.filter(Boolean).map(c => c!.id))
+  const available = clinics.filter(c => !usedIds.has(c.id))
+  if (available.length === 0) return [null, null]
+
+  // If no preferences set, fall back to shuffle
+  if (prefs.preferenceRank.length === 0) {
+    const shuffled = [...available].sort(() => Math.random() - 0.5)
+    return [shuffled[0] ?? null, shuffled[1] ?? null]
+  }
+
+  const maxYears = Math.max(...available.map(c => c.years_experience), 1)
+  const scored = available
+    .map(c => ({ clinic: c, score: scoreClinic(c, prefs, maxYears) }))
+    .sort((a, b) => b.score - a.score)
+
+  return [scored[0]?.clinic ?? null, scored[1]?.clinic ?? null]
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 export default function ClinicsSelectPage() {
@@ -299,23 +366,37 @@ export default function ClinicsSelectPage() {
   const [activeClinic, setActiveClinic] = useState<Clinic | null>(null)
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [loading, setLoading] = useState(true)
+  const [patientPrefs, setPatientPrefs] = useState<PatientPrefs>({
+    preferenceRank: [], city: null, country: null, fertilityGoals: [],
+  })
 
-  const deriveAmigaRecs = useCallback((clinics: Clinic[], slots: SlotPair): SlotPair => {
-    const usedIds = new Set(slots.filter(Boolean).map(c => c!.id))
-    const available = clinics.filter(c => !usedIds.has(c.id))
-    const shuffled = [...available].sort(() => Math.random() - 0.5)
-    return [shuffled[0] ?? null, shuffled[1] ?? null]
-  }, [])
+  const deriveAmigaRecs = useCallback((clinics: Clinic[], slots: SlotPair, prefs?: PatientPrefs): SlotPair => {
+    return deriveAmigaRecsScored(clinics, slots, prefs ?? patientPrefs)
+  }, [patientPrefs])
 
   useEffect(() => {
     async function load() {
-      const [clinicsRes, selectionsRes] = await Promise.all([
+      const [clinicsRes, selectionsRes, patientRes] = await Promise.all([
         fetch('/api/clinics'),
         fetch('/api/clinics/selections'),
+        fetch('/api/profile'),
       ])
 
       const clinics: Clinic[] = clinicsRes.ok ? await clinicsRes.json() : []
       setAllClinics(clinics)
+
+      // Build patient prefs from profile
+      const prefs: PatientPrefs = { preferenceRank: [], city: null, country: null, fertilityGoals: [] }
+      if (patientRes.ok) {
+        const { patient } = await patientRes.json()
+        if (patient) {
+          prefs.preferenceRank = patient.preference_rank ?? []
+          prefs.city = patient.city ?? null
+          prefs.country = patient.country ?? null
+          prefs.fertilityGoals = patient.fertility_goals ?? []
+          setPatientPrefs(prefs)
+        }
+      }
 
       if (selectionsRes.ok) {
         const { selections, confirmed_at } = await selectionsRes.json()
@@ -336,18 +417,18 @@ export default function ClinicsSelectPage() {
         setPatientSlots(newPatientSlots)
         setPatientNotes(newNotes)
         setChosenClinic(newChosenClinic)
-        setAmigaRecs(deriveAmigaRecs(clinics, newPatientSlots))
+        setAmigaRecs(deriveAmigaRecsScored(clinics, newPatientSlots, prefs))
         setConfirmed(!!confirmed_at)
 
         if (newChosenClinic) setStep(3)
       } else {
-        setAmigaRecs(deriveAmigaRecs(clinics, [null, null]))
+        setAmigaRecs(deriveAmigaRecsScored(clinics, [null, null], prefs))
       }
 
       setLoading(false)
     }
     load()
-  }, [deriveAmigaRecs])
+  }, [])
 
   async function handlePatientSave(slotIndex: 0 | 1, clinic: Clinic, note: string) {
     const newSlots: SlotPair = [...patientSlots] as SlotPair
@@ -365,7 +446,7 @@ export default function ClinicsSelectPage() {
     setPatientNotes(newNotes)
 
     if (amigaRecs.some(r => r?.id === clinic.id)) {
-      setAmigaRecs(deriveAmigaRecs(allClinics, newSlots))
+      setAmigaRecs(deriveAmigaRecsScored(allClinics, newSlots, patientPrefs))
     }
   }
 
@@ -383,7 +464,7 @@ export default function ClinicsSelectPage() {
 
     setPatientSlots(newSlots)
     setPatientNotes(newNotes)
-    setAmigaRecs(deriveAmigaRecs(allClinics, newSlots))
+    setAmigaRecs(deriveAmigaRecsScored(allClinics, newSlots, patientPrefs))
   }
 
   async function handleNoteSave(slotIndex: 0 | 1, note: string) {
@@ -454,6 +535,7 @@ export default function ClinicsSelectPage() {
         {/* Header */}
         <Box mb="2">
           <Heading size="3xl" color="brand.600" mb="1">Clinic Selection</Heading>
+          <Separator borderColor="purple.500" borderWidth="2px" width="24" mb="3" />
           <Text fontSize="md" color="gray.500">Find the right clinic for your fertility journey</Text>
         </Box>
 

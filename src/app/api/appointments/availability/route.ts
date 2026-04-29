@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         clinic_id: clinicId,
         appointment_type: 'consultation',
         appointment_date: appointmentDate,
-        status: 'pending',
+        status: 'scheduled',
         assistant_enabled: false,
         notes: JSON.stringify({
           type: 'availability',

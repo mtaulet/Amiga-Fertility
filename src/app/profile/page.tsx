@@ -206,13 +206,13 @@ export default function ProfilePage() {
       <Container maxW="7xl" py="6" px={{ base: '4', sm: '6', lg: '8' }}>
 
         {/* Header */}
-        <Card.Root bg="white" mb="6" borderWidth="1px" borderColor="gray.200">
-          <Card.Body>
-            <Heading size="xl" color="brand.600" fontWeight="bold">
-              {headerParts.join(', ') || 'Complete your profile'}
-            </Heading>
-          </Card.Body>
-        </Card.Root>
+        <Box mb="8">
+          <Heading size="3xl" color="brand.600" mb="1">
+            {headerParts.join(', ') || 'Patient Profile'}
+          </Heading>
+          <Separator borderColor="purple.500" borderWidth="2px" width="24" mb="3" />
+          <Text fontSize="md" color="gray.500">Your personal and medical information</Text>
+        </Box>
 
         {saveError && (
           <Text fontSize="sm" color="red.500" mb="4">{saveError}</Text>

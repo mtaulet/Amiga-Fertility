@@ -3,6 +3,8 @@ import OpenAI from 'openai'
 import { auth0 } from '@/lib/auth0'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
+export const maxDuration = 60
+
 function getOpenAI() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 }

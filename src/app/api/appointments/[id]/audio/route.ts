@@ -3,6 +3,8 @@ import OpenAI from 'openai'
 import { auth0 } from '@/lib/auth0'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
+export const maxDuration = 60 // seconds — needed for Whisper transcription
+
 const BUCKET = 'appointment-audios'
 
 function getOpenAI() {

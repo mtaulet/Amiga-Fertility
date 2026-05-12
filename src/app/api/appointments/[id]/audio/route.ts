@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
+import { transcribeAudio } from '@/lib/azure-speech'
 import { auth0 } from '@/lib/auth0'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
@@ -7,9 +7,6 @@ export const maxDuration = 60 // seconds — needed for Whisper transcription
 
 const BUCKET = 'appointment-audios'
 
-function getOpenAI() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-}
 
 async function getVerifiedIds(auth0Id: string, appointmentId: string) {
   const { data: patient } = await supabaseAdmin
@@ -69,14 +66,7 @@ export async function POST(
 
     // ── 2. Transcribe with Whisper ─────────────────────────────────────────
     // Re-wrap the buffer as a File so the OpenAI SDK receives a named file
-    const audioFile = new File([buffer], file.name, { type: file.type || 'audio/mpeg' })
-
-    const transcription = await getOpenAI().audio.transcriptions.create({
-      model: 'whisper-1',
-      file: audioFile,
-    })
-
-    const transcriptText = transcription.text
+    const transcriptText = await transcribeAudio(buffer, file.type || 'audio/mpeg', file.name)
     const transcriptGeneratedAt = new Date().toISOString()
 
     // ── 3. Save both to the appointment ────────────────────────────────────

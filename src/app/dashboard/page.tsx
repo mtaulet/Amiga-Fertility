@@ -120,7 +120,7 @@ export default async function DashboardPage() {
           </Heading>
           <Card.Root bg="white" borderWidth="1px" borderColor="gray.200">
             <Link
-              href="#"
+              href="/intake"
               display="block"
               px={{ base: '6', sm: '8' }}
               py="5"
@@ -130,10 +130,10 @@ export default async function DashboardPage() {
               <Flex align="center">
                 <Box flex="1">
                   <Text fontSize="base" fontWeight="bold" color="brand.600" mb="2">
-                    Complete your medical history
+                    Update your intake information
                   </Text>
                   <Text fontSize="sm" color="gray.700">
-                    Help us provide better care by completing your profile
+                    Review or update your personal, medical, and treatment preferences
                   </Text>
                 </Box>
                 <Box ml="5" flexShrink="0">

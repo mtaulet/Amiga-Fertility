@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server'
-import OpenAI from 'openai'
+import { getAzureGPT } from '@/lib/azure-openai'
 import { auth0 } from '@/lib/auth0'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
 export const maxDuration = 60
 
-function getOpenAI() {
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-}
 
 export async function POST() {
   try {
@@ -70,8 +67,8 @@ Return ONLY the JSON array, no markdown, no explanation.
 Transcript:
 ${appointment.transcript_text}`
 
-    const completion = await getOpenAI().chat.completions.create({
-      model: 'gpt-4o',
+    const completion = await getAzureGPT().chat.completions.create({
+      model: process.env.AZURE_OPENAI_GPT4O_DEPLOYMENT ?? 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.2,
       max_tokens: 4096,

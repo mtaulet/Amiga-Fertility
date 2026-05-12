@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth0 } from '@/lib/auth0'
-import Anthropic from '@anthropic-ai/sdk'
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+import { getAzureGPT } from '@/lib/azure-openai'
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,13 +32,13 @@ ${contextParts.join('\n\n')}
 
 Write a one-paragraph summary:`
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+    const response = await getAzureGPT().chat.completions.create({
+      model: process.env.AZURE_OPENAI_GPT4O_DEPLOYMENT ?? 'gpt-4o',
       max_tokens: 512,
       messages: [{ role: 'user', content: prompt }],
     })
 
-    const summary = message.content[0].type === 'text' ? message.content[0].text : ''
+    const summary = response.choices[0].message.content ?? ''
 
     return NextResponse.json({ summary })
   } catch (error: any) {

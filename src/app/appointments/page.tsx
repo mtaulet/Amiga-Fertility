@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { supabase } from '@/lib/supabase/client'
 import SidebarLayout from '@/components/layouts/SidebarLayout'
 import {
   Badge,
@@ -195,18 +196,39 @@ export default function AppointmentsPage() {
     setAudioError(null)
     setAudioStatus('uploading')
     try {
-      const body = new FormData()
-      body.append('audio', file)
+      // Step 1: Get signed upload URL from server
+      const urlRes = await fetch(`/api/appointments/${appointment.id}/audio/upload-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name }),
+      })
+      const urlData = await urlRes.json()
+      if (!urlRes.ok) { setAudioError(urlData.error ?? 'Upload failed'); setAudioStatus('idle'); return }
+
+      // Step 2: Upload directly to Supabase Storage (bypasses Vercel size limit)
+      const { error: uploadError } = await supabase.storage
+        .from('appointment-audios')
+        .uploadToSignedUrl(urlData.storagePath, urlData.token, file, {
+          contentType: file.type || 'audio/mpeg',
+        })
+      if (uploadError) { setAudioError('Upload failed. Please try again.'); setAudioStatus('idle'); return }
+
+      // Step 3: Trigger transcription on the server
       setAudioStatus('transcribing')
-      const res = await fetch(`/api/appointments/${appointment.id}/audio`, { method: 'POST', body })
-      const data = await res.json()
-      if (!res.ok) { setAudioError(data.error ?? 'Upload failed'); setAudioStatus('idle'); return }
+      const transcribeRes = await fetch(`/api/appointments/${appointment.id}/audio/transcribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storagePath: urlData.storagePath, mimeType: file.type, filename: file.name }),
+      })
+      const transcribeData = await transcribeRes.json()
+      if (!transcribeRes.ok) { setAudioError(transcribeData.error ?? 'Transcription failed'); setAudioStatus('idle'); return }
+
       setAppointment(prev => prev ? {
         ...prev,
-        audio_file_url: data.storagePath,
-        audio_uploaded_at: data.uploadedAt,
-        transcript_text: data.transcriptText,
-        transcript_generated_at: data.transcriptGeneratedAt,
+        audio_file_url: transcribeData.storagePath,
+        audio_uploaded_at: transcribeData.uploadedAt,
+        transcript_text: transcribeData.transcriptText,
+        transcript_generated_at: transcribeData.transcriptGeneratedAt,
       } : prev)
       setAudioStatus('done')
     } catch {

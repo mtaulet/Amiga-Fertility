@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { transcribeAudio } from '@/lib/azure-speech'
 import { auth0 } from '@/lib/auth0'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
-export const maxDuration = 60 // seconds — needed for Whisper transcription
-
 const BUCKET = 'appointment-audios'
-
 
 async function getVerifiedIds(auth0Id: string, appointmentId: string) {
   const { data: patient } = await supabaseAdmin
@@ -27,76 +23,6 @@ async function getVerifiedIds(auth0Id: string, appointmentId: string) {
   if (!appointment) return null
 
   return { patientId: patient.id, appointmentId: appointment.id }
-}
-
-// POST — upload audio then transcribe
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await auth0.getSession()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const { id: appointmentId } = await params
-    const ids = await getVerifiedIds(session.user.sub, appointmentId)
-    if (!ids) return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
-
-    const formData = await request.formData()
-    const file = formData.get('audio') as File | null
-    if (!file) return NextResponse.json({ error: 'No audio file provided' }, { status: 400 })
-
-    // ── 1. Upload to Supabase Storage ──────────────────────────────────────
-    await supabaseAdmin.storage.createBucket(BUCKET, { public: false }).catch(() => {})
-
-    const ext = file.name.split('.').pop() ?? 'audio'
-    const storagePath = `${ids.patientId}/${appointmentId}/${Date.now()}.${ext}`
-    const buffer = Buffer.from(await file.arrayBuffer())
-
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from(BUCKET)
-      .upload(storagePath, buffer, {
-        contentType: file.type || 'audio/mpeg',
-        upsert: true,
-      })
-
-    if (uploadError) throw uploadError
-
-    const uploadedAt = new Date().toISOString()
-
-    // ── 2. Transcribe with Whisper ─────────────────────────────────────────
-    // Re-wrap the buffer as a File so the OpenAI SDK receives a named file
-    const transcriptText = await transcribeAudio(buffer, file.type || 'audio/mpeg', file.name)
-    const transcriptGeneratedAt = new Date().toISOString()
-
-    // ── 3. Save both to the appointment ────────────────────────────────────
-    const { error: updateError } = await supabaseAdmin
-      .from('appointments')
-      .update({
-        audio_file_url: storagePath,
-        audio_uploaded_at: uploadedAt,
-        transcript_text: transcriptText,
-        transcript_generated_at: transcriptGeneratedAt,
-        updated_at: transcriptGeneratedAt,
-      })
-      .eq('id', appointmentId)
-
-    if (updateError) throw updateError
-
-    return NextResponse.json({
-      success: true,
-      storagePath,
-      uploadedAt,
-      transcriptText,
-      transcriptGeneratedAt,
-    })
-  } catch (error: any) {
-    console.error('Audio upload/transcribe error:', error)
-    const message = process.env.NODE_ENV === 'development'
-      ? (error.message ?? 'Upload failed')
-      : 'Upload failed'
-    return NextResponse.json({ error: message }, { status: 500 })
-  }
 }
 
 // GET — return a short-lived signed URL for playback/download

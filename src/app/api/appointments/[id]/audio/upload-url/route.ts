@@ -10,30 +10,64 @@ export async function POST(
 ) {
   try {
     const session = await auth0.getSession()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session) {
+      console.log('[upload-url] No session')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const { id: appointmentId } = await params
+    const { filename } = await request.json()
+    console.log(`[upload-url] user=${session.user.sub} appointmentId=${appointmentId} filename=${filename}`)
 
-    const { data: patient } = await supabaseAdmin
-      .from('patients')
+    const { data: providerRow } = await supabaseAdmin
+      .from('clinic_providers')
       .select('id')
       .eq('auth0_id', session.user.sub)
+      .limit(1)
       .single()
 
-    if (!patient) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    let uploaderId: string
 
-    const { data: appointment } = await supabaseAdmin
-      .from('appointments')
-      .select('id')
-      .eq('id', appointmentId)
-      .eq('patient_id', patient.id)
-      .single()
+    if (providerRow) {
+      console.log('[upload-url] caller is provider')
+      const { data: appointment } = await supabaseAdmin
+        .from('appointments')
+        .select('id, patient_id')
+        .eq('id', appointmentId)
+        .single()
+      if (!appointment) {
+        console.log('[upload-url] appointment not found for provider')
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      }
+      uploaderId = appointment.patient_id
+    } else {
+      console.log('[upload-url] caller is patient')
+      const { data: patient } = await supabaseAdmin
+        .from('patients')
+        .select('id')
+        .eq('auth0_id', session.user.sub)
+        .single()
+      if (!patient) {
+        console.log('[upload-url] patient record not found')
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      }
 
-    if (!appointment) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      const { data: appointment } = await supabaseAdmin
+        .from('appointments')
+        .select('id')
+        .eq('id', appointmentId)
+        .eq('patient_id', patient.id)
+        .single()
+      if (!appointment) {
+        console.log('[upload-url] appointment not found for patient')
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      }
+      uploaderId = patient.id
+    }
 
-    const { filename } = await request.json()
     const ext = filename?.split('.').pop() ?? 'audio'
-    const storagePath = `${patient.id}/${appointmentId}/${Date.now()}.${ext}`
+    const storagePath = `${uploaderId}/${appointmentId}/${Date.now()}.${ext}`
+    console.log(`[upload-url] storagePath=${storagePath}`)
 
     await supabaseAdmin.storage.createBucket(BUCKET, { public: false }).catch(() => {})
 
@@ -41,10 +75,15 @@ export async function POST(
       .from(BUCKET)
       .createSignedUploadUrl(storagePath)
 
-    if (error) throw error
+    if (error) {
+      console.error('[upload-url] createSignedUploadUrl error:', error)
+      throw error
+    }
 
+    console.log('[upload-url] signed URL created ok')
     return NextResponse.json({ storagePath, token: data.token })
   } catch (error: any) {
+    console.error('[upload-url] caught error:', error)
     return NextResponse.json({ error: error.message ?? 'Failed to create upload URL' }, { status: 500 })
   }
 }

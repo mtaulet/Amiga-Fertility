@@ -81,6 +81,7 @@ export interface Appointment {
   communications_summary_reviewed_at: string | null
   generated_summary: string | null
   generated_summary_reviewed_at: string | null
+  video_room_url: string | null
   created_at: string
   updated_at: string
 }
@@ -117,6 +118,13 @@ export interface Clinic {
   photo_url: string | null
   created_at: string
   updated_at: string
+}
+
+export interface ClinicProvider {
+  id: string
+  clinic_id: string
+  auth0_id: string
+  created_at: string
 }
 
 export interface PatientClinicSelection {

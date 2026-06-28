@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import SidebarLayout from '@/components/layouts/SidebarLayout'
+import dynamic from 'next/dynamic'
+const VideoCall = dynamic(() => import('@/components/VideoCall'), { ssr: false })
 import {
   Badge,
   Box,
@@ -127,6 +129,9 @@ export default function AppointmentsPage() {
   const [audioStatus, setAudioStatus] = useState<'idle' | 'uploading' | 'transcribing' | 'done'>('idle')
   const [audioError, setAudioError] = useState<string | null>(null)
   const [showTranscript, setShowTranscript] = useState(false)
+  const [videoRoom, setVideoRoom] = useState<{ url: string; token: string } | null>(null)
+  const [joiningCall, setJoiningCall] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
 
   const audioInputRef = useRef<HTMLInputElement>(null)
 
@@ -239,6 +244,36 @@ export default function AppointmentsPage() {
     }
   }
 
+  async function handleJoinCall() {
+    if (!appointment) return
+    setJoiningCall(true)
+    setJoinError(null)
+    try {
+      const res = await fetch('/api/video/room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: appointment.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setJoinError(data.error ?? 'Failed to join call'); return }
+      setVideoRoom({ url: data.url, token: data.token })
+    } catch {
+      setJoinError('Failed to join call')
+    } finally {
+      setJoiningCall(false)
+    }
+  }
+
+  function handleTranscriptReady(data: { transcriptText: string; transcriptGeneratedAt: string; storagePath: string }) {
+    setAppointment(prev => prev ? {
+      ...prev,
+      audio_file_url: data.storagePath,
+      audio_uploaded_at: data.transcriptGeneratedAt,
+      transcript_text: data.transcriptText,
+      transcript_generated_at: data.transcriptGeneratedAt,
+    } : prev)
+  }
+
   async function handleAudioPlay() {
     if (!appointment) return
     const res = await fetch(`/api/appointments/${appointment.id}/audio`)
@@ -316,6 +351,29 @@ export default function AppointmentsPage() {
                       <Text fontSize="sm" color="gray.900">{appointment.clinic_name ?? '—'}</Text>
                     </Box>
                   </Flex>
+
+                  <Separator />
+
+                  {/* Video call */}
+                  {videoRoom ? (
+                    <Box>
+                      <VideoCall
+                        roomUrl={videoRoom.url}
+                        token={videoRoom.token}
+                        appointmentId={appointment.id}
+                        onLeave={() => setVideoRoom(null)}
+                        onTranscriptReady={handleTranscriptReady}
+                      />
+                    </Box>
+                  ) : (
+                    <Flex align="center" gap="4" flexWrap="wrap">
+                      <Text fontSize="sm" fontWeight="medium" color="gray.700" minW="120px">Video call</Text>
+                      <Button size="sm" variant="outline" onClick={handleJoinCall} loading={joiningCall}>
+                        Join Call
+                      </Button>
+                      {joinError && <Text fontSize="xs" color="red.500">{joinError}</Text>}
+                    </Flex>
+                  )}
 
                   <Separator />
 

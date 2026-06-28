@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUser } from '@auth0/nextjs-auth0/client'
 import PublicLayout from '@/components/layouts/PublicLayout'
 import {
   Box,
@@ -61,6 +62,12 @@ interface FormData {
 
 export default function IntakePage() {
   const router = useRouter()
+  const { user } = useUser()
+
+  useEffect(() => {
+    const roles = (user?.['https://amiga-fertility.com/roles'] as string[] | undefined) ?? []
+    if (roles.includes('provider')) router.replace('/provider/appointments')
+  }, [user, router])
   const [formData, setFormData] = useState<FormData>({
     first_name: '',
     last_name: '',

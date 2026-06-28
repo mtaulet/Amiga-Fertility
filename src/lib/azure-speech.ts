@@ -2,6 +2,7 @@ export async function transcribeAudio(buffer: Buffer, mimeType: string, filename
   const region = process.env.AZURE_SPEECH_REGION ?? 'swedencentral'
   const key = process.env.AZURE_SPEECH_KEY
 
+  console.log(`[azure-speech] region=${region} keySet=${!!key} bufferSize=${buffer.length}B mimeType=${mimeType}`)
   if (!key) throw new Error('AZURE_SPEECH_KEY not configured')
 
   const url = `https://${region}.api.cognitive.microsoft.com/speechtotext/transcriptions:transcribe?api-version=2024-11-15`
@@ -17,11 +18,15 @@ export async function transcribeAudio(buffer: Buffer, mimeType: string, filename
     body: form,
   })
 
+  console.log(`[azure-speech] response status=${response.status}`)
   if (!response.ok) {
     const text = await response.text()
+    console.error(`[azure-speech] error body: ${text}`)
     throw new Error(`Azure Speech transcription failed (${response.status}): ${text}`)
   }
 
   const result = await response.json()
-  return result.combinedPhrases?.[0]?.text ?? ''
+  const text = result.combinedPhrases?.[0]?.text ?? ''
+  console.log(`[azure-speech] transcript length=${text.length} chars, phrases=${result.combinedPhrases?.length ?? 0}`)
+  return text
 }

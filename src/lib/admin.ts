@@ -1,4 +1,5 @@
 import { auth0 } from '@/lib/auth0'
+import { supabaseAdmin } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 /**
@@ -31,4 +32,33 @@ export async function requireAdmin() {
 export async function isAdmin(): Promise<boolean> {
   const session = await requireAdmin()
   return session !== null
+}
+
+export async function requireProvider() {
+  const session = await auth0.getSession()
+  if (!session) return null
+  const { data } = await supabaseAdmin
+    .from('clinic_providers')
+    .select('id')
+    .eq('auth0_id', session.user.sub)
+    .limit(1)
+    .single()
+  if (!data) return null
+  return session
+}
+
+export async function isProvider(): Promise<boolean> {
+  return (await requireProvider()) !== null
+}
+
+export async function getProviderClinic() {
+  const session = await requireProvider()
+  if (!session) return null
+  const { data: row } = await supabaseAdmin
+    .from('clinic_providers')
+    .select('clinic:clinics(*)')
+    .eq('auth0_id', session.user.sub)
+    .limit(1)
+    .single()
+  return { session, clinic: (row?.clinic as any) ?? null }
 }

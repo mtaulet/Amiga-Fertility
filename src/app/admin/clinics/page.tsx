@@ -268,6 +268,90 @@ function OnboardClinicModal({
   )
 }
 
+type ClinicProvider = { id: string; auth0_id: string; email: string | null; created_at: string }
+
+function ClinicProviders({ clinicId }: { clinicId: string }) {
+  const [providers, setProviders] = useState<ClinicProvider[]>([])
+  const [loading, setLoading] = useState(true)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch(`/api/admin/clinics/${clinicId}/providers`)
+      .then(r => r.json())
+      .then(d => { setProviders(d.providers ?? []); setLoading(false) })
+  }, [clinicId])
+
+  async function handleInvite() {
+    if (!email.trim() || !password) return
+    setInviting(true); setError(null); setSuccess(null)
+    try {
+      const res = await fetch(`/api/admin/clinics/${clinicId}/invite-provider`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setError(data.error ?? 'Failed'); return }
+      setSuccess(`Provider account created for ${email.trim()}`)
+      setEmail(''); setPassword('')
+      fetch(`/api/admin/clinics/${clinicId}/providers`)
+        .then(r => r.json())
+        .then(d => setProviders(d.providers ?? []))
+    } catch {
+      setError('Unexpected error. Please try again.')
+    } finally {
+      setInviting(false)
+    }
+  }
+
+  async function handleRemove(auth0_id: string) {
+    await fetch(`/api/admin/clinics/${clinicId}/providers`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ auth0_id }),
+    })
+    setProviders(prev => prev.filter(p => p.auth0_id !== auth0_id))
+  }
+
+  return (
+    <Box mt="4" pt="3" borderTop="1px" borderColor="gray.100">
+      <Text fontSize="xs" fontWeight="semibold" color="gray.500" textTransform="uppercase" letterSpacing="wide" mb="3">
+        Provider Accounts ({providers.length})
+      </Text>
+      {loading ? <Text fontSize="xs" color="gray.400">Loading…</Text> : (
+        <VStack align="stretch" gap="2" mb="3">
+          {providers.length === 0 && <Text fontSize="xs" color="gray.400">No providers yet.</Text>}
+          {providers.map(p => (
+            <Flex key={p.id} align="center" justify="space-between" bg="gray.50" px="3" py="2" borderRadius="md">
+              <Box>
+                {p.email && <Text fontSize="xs" fontWeight="semibold" color="gray.800">{p.email}</Text>}
+                <Text fontSize="xs" color="gray.400" fontFamily="mono">{p.auth0_id}</Text>
+              </Box>
+              <Button size="xs" variant="ghost" color="red.400" onClick={() => handleRemove(p.auth0_id)}>Remove</Button>
+            </Flex>
+          ))}
+        </VStack>
+      )}
+      <Text fontSize="xs" fontWeight="semibold" color="gray.500" textTransform="uppercase" letterSpacing="wide" mb="2">
+        Create Provider Account
+      </Text>
+      <Grid templateColumns="1fr 1fr auto" gap="2">
+        <Input size="xs" placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} bg="white" />
+        <Input size="xs" placeholder="Temporary password" type="password" value={password} onChange={e => setPassword(e.target.value)} bg="white" />
+        <Button size="xs" colorPalette="orange" onClick={handleInvite} loading={inviting} disabled={!email || !password}>
+          Create
+        </Button>
+      </Grid>
+      {error && <Text fontSize="xs" color="red.500" mt="1">{error}</Text>}
+      {success && <Text fontSize="xs" color="green.600" mt="1">{success}</Text>}
+    </Box>
+  )
+}
+
 export default function AdminClinicsPage() {
   const [clinics, setClinics] = useState<Clinic[]>([])
   const [loading, setLoading] = useState(true)
@@ -375,6 +459,12 @@ export default function AdminClinicsPage() {
                         >
                           {expanded ? '▲ Less' : '▼ More details'}
                         </Button>
+
+                        {expanded && (
+                          <Box mt="3">
+                            <ClinicProviders clinicId={c.id} />
+                          </Box>
+                        )}
 
                         {expanded && (
                           <Box mt="3" pt="3" borderTop="1px" borderColor="gray.100">

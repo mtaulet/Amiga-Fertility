@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react'
 export default function LoginPage() {
   const { user, isLoading } = useUser()
   const router = useRouter()
-  const [mode, setMode] = useState<'patient' | 'admin'>('patient')
+  const [mode, setMode] = useState<'patient' | 'admin' | 'provider'>('patient')
 
   useEffect(() => {
     if (!isLoading && user) router.push('/dashboard')
@@ -22,6 +22,7 @@ export default function LoginPage() {
   }
 
   const isAdmin = mode === 'admin'
+  const isProvider = mode === 'provider'
 
   return (
     <div style={{
@@ -48,15 +49,15 @@ export default function LoginPage() {
             display: 'flex', background: '#EDE3D3', borderRadius: '99px',
             padding: '4px', gap: '2px',
           }}>
-            {(['patient', 'admin'] as const).map(m => (
+            {(['patient', 'provider', 'admin'] as const).map(m => (
               <button key={m} onClick={() => setMode(m)} style={{
                 padding: '8px 24px', borderRadius: '99px', fontSize: '14px',
                 fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s',
                 background: mode === m ? 'white' : 'transparent',
-                color: mode === m ? (m === 'admin' ? '#6B4D78' : '#D55A35') : '#9ca3af',
+                color: mode === m ? (m === 'admin' ? '#6B4D78' : m === 'provider' ? '#1a6b4a' : '#D55A35') : '#9ca3af',
                 boxShadow: mode === m ? '0 1px 6px rgba(0,0,0,0.12)' : 'none',
               }}>
-                {m === 'patient' ? 'Patient' : 'Admin'}
+                {m === 'patient' ? 'Patient' : m === 'provider' ? 'Provider' : 'Admin'}
               </button>
             ))}
           </div>
@@ -66,49 +67,52 @@ export default function LoginPage() {
         <div style={{
           background: 'white', borderRadius: '20px', padding: '40px 32px',
           boxShadow: '0 4px 32px rgba(0,0,0,0.08)',
-          border: `2px solid ${isAdmin ? '#E5DCE9' : '#FAF7F3'}`,
+          border: `2px solid ${isAdmin ? '#E5DCE9' : isProvider ? '#DCE9E3' : '#FAF7F3'}`,
           transition: 'border-color 0.2s',
           minHeight: '320px',
         }}>
           <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-            {isAdmin && (
+            {(isAdmin || isProvider) && (
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
-                background: '#F5F1F7', color: '#6B4D78', borderRadius: '99px',
-                padding: '5px 14px', fontSize: '11px', fontWeight: 700,
+                background: isAdmin ? '#F5F1F7' : '#F0F7F4',
+                color: isAdmin ? '#6B4D78' : '#1a6b4a',
+                borderRadius: '99px', padding: '5px 14px', fontSize: '11px', fontWeight: 700,
                 letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '14px',
               }}>
-                🔒 Admin Portal
+                🔒 {isAdmin ? 'Admin Portal' : 'Provider Portal'}
               </div>
             )}
             <h2 style={{
               fontSize: '24px', fontWeight: 700, color: '#1a1a1a',
               marginBottom: '8px', fontFamily: 'Georgia, serif',
             }}>
-              {isAdmin ? 'Admin Sign In' : 'Patient Portal'}
+              {isAdmin ? 'Admin Sign In' : isProvider ? 'Provider Sign In' : 'Patient Portal'}
             </h2>
             <p style={{ fontSize: '14px', color: '#6b7280', lineHeight: 1.5 }}>
               {isAdmin
                 ? 'Access the Amiga Fertility admin dashboard'
+                : isProvider
+                ? 'Access your provider dashboard and patient appointments'
                 : 'Secure access to your fertility journey'}
             </p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <a
-              href={isAdmin ? '/auth/login?returnTo=/admin/dashboard' : '/auth/login'}
+              href={isAdmin ? '/auth/login?returnTo=/admin/dashboard' : isProvider ? '/auth/login?returnTo=/provider/appointments' : '/auth/login'}
               style={{
                 display: 'flex', justifyContent: 'center', alignItems: 'center',
                 width: '100%', padding: '15px 24px', borderRadius: '12px',
                 fontWeight: 700, fontSize: '15px', textDecoration: 'none',
-                background: isAdmin ? '#6B4D78' : '#E67449', color: 'white',
+                background: isAdmin ? '#6B4D78' : isProvider ? '#1a6b4a' : '#E67449', color: 'white',
                 boxSizing: 'border-box',
               }}
             >
-              {isAdmin ? 'Sign in as Admin' : 'Sign in to your account'}
+              {isAdmin ? 'Sign in as Admin' : isProvider ? 'Sign in as Provider' : 'Sign in to your account'}
             </a>
 
-            {!isAdmin && (
+            {!isAdmin && !isProvider && (
               <a
                 href="/auth/login?screen_hint=signup"
                 style={{
@@ -130,6 +134,8 @@ export default function LoginPage() {
           }}>
             {isAdmin
               ? 'Admin access is restricted. Contact your system administrator if you need access.'
+              : isProvider
+              ? 'Provider access is restricted. Contact your administrator to get access.'
               : 'Your data is protected with enterprise-grade security and HIPAA-compliant infrastructure'}
           </div>
         </div>

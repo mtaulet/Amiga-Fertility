@@ -13,40 +13,77 @@ export async function POST(
 ) {
   try {
     const session = await auth0.getSession()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session) {
+      console.log('[transcribe] No session')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const { id: appointmentId } = await params
+    console.log(`[transcribe] user=${session.user.sub} appointmentId=${appointmentId}`)
 
-    const { data: patient } = await supabaseAdmin
-      .from('patients')
+    const { data: providerRow } = await supabaseAdmin
+      .from('clinic_providers')
       .select('id')
       .eq('auth0_id', session.user.sub)
+      .limit(1)
       .single()
 
-    if (!patient) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (providerRow) {
+      console.log('[transcribe] caller is provider')
+      const { data: appointment } = await supabaseAdmin
+        .from('appointments')
+        .select('id')
+        .eq('id', appointmentId)
+        .single()
+      if (!appointment) {
+        console.log('[transcribe] appointment not found')
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      }
+    } else {
+      console.log('[transcribe] caller is patient')
+      const { data: patient } = await supabaseAdmin
+        .from('patients')
+        .select('id')
+        .eq('auth0_id', session.user.sub)
+        .single()
+      if (!patient) {
+        console.log('[transcribe] patient record not found')
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      }
 
-    const { data: appointment } = await supabaseAdmin
-      .from('appointments')
-      .select('id')
-      .eq('id', appointmentId)
-      .eq('patient_id', patient.id)
-      .single()
-
-    if (!appointment) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      const { data: appointment } = await supabaseAdmin
+        .from('appointments')
+        .select('id')
+        .eq('id', appointmentId)
+        .eq('patient_id', patient.id)
+        .single()
+      if (!appointment) {
+        console.log('[transcribe] appointment not found for patient')
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      }
+    }
 
     const { storagePath, mimeType, filename } = await request.json()
+    console.log(`[transcribe] storagePath=${storagePath} mimeType=${mimeType} filename=${filename}`)
 
     const { data: urlData, error: urlError } = await supabaseAdmin.storage
       .from(BUCKET)
       .createSignedUrl(storagePath, 120)
 
-    if (urlError) throw urlError
+    if (urlError) {
+      console.error('[transcribe] createSignedUrl error:', urlError)
+      throw urlError
+    }
 
+    console.log('[transcribe] downloading audio from storage')
     const fileResponse = await fetch(urlData.signedUrl)
-    if (!fileResponse.ok) throw new Error('Failed to download audio from storage')
+    if (!fileResponse.ok) throw new Error(`Failed to download audio from storage: ${fileResponse.status}`)
 
     const buffer = Buffer.from(await fileResponse.arrayBuffer())
+    console.log(`[transcribe] audio buffer size=${buffer.length}B, sending to Azure`)
+
     const transcriptText = await transcribeAudio(buffer, mimeType || 'audio/mpeg', filename || 'audio.mp3')
+    console.log(`[transcribe] Azure returned ${transcriptText.length} chars`)
 
     const now = new Date().toISOString()
 
@@ -61,6 +98,7 @@ export async function POST(
       })
       .eq('id', appointmentId)
 
+    console.log('[transcribe] DB updated, done')
     return NextResponse.json({
       success: true,
       storagePath,
@@ -69,6 +107,7 @@ export async function POST(
       transcriptGeneratedAt: now,
     })
   } catch (error: any) {
+    console.error('[transcribe] caught error:', error)
     const message = process.env.NODE_ENV === 'development'
       ? (error.message ?? 'Transcription failed')
       : 'Transcription failed'

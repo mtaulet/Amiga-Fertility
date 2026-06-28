@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { auth0 } from '@/lib/auth0'
+import { isProvider, isAdmin } from '@/lib/admin'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import SidebarLayout from '@/components/layouts/SidebarLayout'
 import { Box, Container, Heading, Text, Grid, Flex, Separator, Link } from '@chakra-ui/react'
@@ -12,6 +13,10 @@ export default async function DashboardPage() {
   if (!session) {
     redirect('/login')
   }
+
+  // Redirect non-patients to their respective portals
+  if (await isProvider()) redirect('/provider/appointments')
+  if (await isAdmin()) redirect('/admin/dashboard')
 
   // Check if patient has completed intake
   const { data: patient } = await supabaseAdmin
